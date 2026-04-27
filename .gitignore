@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# 다운로드 결과 데이터
+ALIO_Data/
+ALIO_*/
+*.log
+
+# 이전 버전 (백업은 NAS 로컬에만)
+alio_crawler_v5.2.4.py
+alio_crawler_v5.3.py
+
+# 별도 프로젝트 (KICOX-AI 등)
+alio_mcp_poc.py
+
+# 로컬 설정·임시 파일
+settings.json
+*.tmp
+~$*
