@@ -2234,6 +2234,14 @@ class ALIOCrawlerGUI:
                         data = resp.json()
                         self.api_response_data = data
 
+                        # 알리오 서버 응답 status 검증 (일부 항목은 서버에서 'fail' 반환)
+                        if isinstance(data, dict) and data.get("status") and data.get("status") != "success":
+                            srv_msg = data.get("message", "알 수 없음")
+                            self.log(f"⚠ 알리오 서버 응답 실패: {srv_msg}")
+                            self.log(f"  해당 공시항목(rootNo={root_no})은 알리오 사이트 자체 결함일 수 있습니다.")
+                            self.log(f"  다른 공시항목을 시도하거나 잠시 후 다시 시도해 주세요.")
+                            return
+
                         items = []
                         if isinstance(data, dict):
                             if 'data' in data and data['data'] is not None:
@@ -2470,6 +2478,14 @@ class ALIOCrawlerGUI:
                         data = resp.json()
                         self.api_response_data = data
 
+                        # 알리오 서버 응답 status 검증 (일부 항목은 서버에서 'fail' 반환)
+                        if isinstance(data, dict) and data.get("status") and data.get("status") != "success":
+                            srv_msg = data.get("message", "알 수 없음")
+                            self.log(f"⚠ 알리오 서버 응답 실패: {srv_msg}")
+                            self.log(f"  해당 공시항목(rootNo={root_no})은 알리오 사이트 자체 결함일 수 있습니다.")
+                            self.log(f"  다른 공시항목을 시도하거나 잠시 후 다시 시도해 주세요.")
+                            return
+
                         items = []
                         if isinstance(data, dict):
                             if 'data' in data and data['data'] is not None:
@@ -2661,6 +2677,14 @@ class ALIOCrawlerGUI:
                     if resp.status_code == 200:
                         data = resp.json()
                         self.api_response_data = data
+
+                        # 알리오 서버 응답 status 검증 (일부 항목은 서버에서 'fail' 반환)
+                        if isinstance(data, dict) and data.get("status") and data.get("status") != "success":
+                            srv_msg = data.get("message", "알 수 없음")
+                            self.log(f"⚠ 알리오 서버 응답 실패: {srv_msg}")
+                            self.log(f"  해당 공시항목(rootNo={root_no})은 알리오 사이트 자체 결함일 수 있습니다.")
+                            self.log(f"  다른 공시항목을 시도하거나 잠시 후 다시 시도해 주세요.")
+                            return
 
                         items = []
                         if isinstance(data, dict):
@@ -4250,9 +4274,29 @@ class ALIOCrawlerGUI:
         """
         try:
             item_info = override_item_info or self.get_selected_item_info()
-            item_name = override_item_name or self.item_var.get()
+            if not item_info:
+                self.log("")
+                self.log("⚠ 공시항목이 선택되지 않았습니다.")
+                self.log("   '공시항목 선택...' 버튼으로 항목을 먼저 선택해 주세요.")
+                self.root.after(
+                    0,
+                    lambda: self.finish_process(success=False, enable_features=True),
+                )
+                return
+            item_name = (
+                override_item_name
+                or self.item_var.get()
+                or item_info.get("name", "(미상)")
+            )
             item_type = item_info.get("type", "jung")
-            root_no = item_info["rootNo"]
+            root_no = item_info.get("rootNo")
+            if not root_no:
+                self.log("⚠ 선택된 공시항목 정보가 불완전합니다 (rootNo 없음). 항목을 다시 선택해 주세요.")
+                self.root.after(
+                    0,
+                    lambda: self.finish_process(success=False, enable_features=True),
+                )
+                return
 
             if download_folder is None:
                 save_path = self.save_path_var.get()
