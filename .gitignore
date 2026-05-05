@@ -30,3 +30,7 @@ alio_mcp_poc.py
 settings.json
 *.tmp
 ~$*
+
+# 캐시·자동 생성 파일 백업
+*.bak.*
+*.bak

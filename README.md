@@ -6,13 +6,16 @@
 
 ## 주요 기능
 
-- 알리오 항목별공시 **전 항목(83개) 자동 수집** — `formList.json` API 활용
+- 알리오 항목별공시 **전 항목(92개, 2026-05 기준) 자동 수집** — `formList.json` API 활용
 - **다중 기관 × 다중 항목 일괄 다운로드** — UI 트리뷰 체크박스
 - 첨부파일 다운로드 엔드포인트 통합 (PDF / file / dfile / rule + 게시판형 2종)
 - 게시판형 항목(감사원 지적사항, 국회지적사항, 임원 모집공고 등) 첨부 자동 수집
+- 내부규정(rule): findRuleList → findRuleDtl → bFiles 파싱 → rulefiledown 다운로드
+- 자체감사(audit) / 경영실적 평가(mgmt_eval): itemReportListSusi → 보고서별 첨부 다운로드
 - 입찰공고 외부 링크(g2b.go.kr) URL 자료_목록.txt에 정리
 - 폴더 자동 분류: `ALIO_타임스탬프 / 항목명 / 기관명 / 파일들`
 - 기관 단위 ThreadPoolExecutor 병렬 처리(envlaw 기준 약 5배 속도)
+- 알리오 항목 수 변경 시 자동 캐시 갱신 (`alio_items.json`)
 
 ## 환경
 
@@ -69,6 +72,7 @@ python3 precise_audit.py        # 약 5분
 
 | 버전 | 주요 변경 |
 |---|---|
+| v5.4.2 | 알리오 항목 92개로 확장 (ESG 운영·AI 활용 카테고리 신설) + precise_audit.py 정확화 (rule/audit/mgmt_eval 실제 흐름 반영) |
 | v5.4.1 | 게시판형 첨부 2개 패턴 통합 + 콤마 fallback + 외부 링크 + envlaw 병렬화 |
 | v5.4 | 83개 항목 자동 수집 + UI 다중 선택 + 폴더 구조 재편 |
 | v5.3 | 경영실적 평가결과 추가 (Susi API) |

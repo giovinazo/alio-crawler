@@ -1,6 +1,6 @@
 {
-  "scanned_at": "2026-04-26T23:27:44.583108",
-  "total_count": 83,
+  "scanned_at": "2026-05-05T22:23:25.838030",
+  "total_count": 92,
   "items": [
     {
       "lcd": "2",
@@ -352,7 +352,7 @@
       "scd": "B1280",
       "scdnm": "복리후생 자체점검 결과",
       "reportYn": "N",
-      "reportType": "4",
+      "reportType": "1",
       "reportNos": "B1280",
       "quart": "0",
       "disclosureType": 4,
@@ -563,6 +563,26 @@
       "mcnt": 2
     },
     {
+      "lcd": "2",
+      "lcdnm": "기관운영",
+      "nmcd": "RPTMGR0207",
+      "nmcdnm": "AI 활용",
+      "mcd": "80402",
+      "mcdnm": "AI 활용현황",
+      "scd": null,
+      "scdnm": null,
+      "reportYn": "Y",
+      "reportType": "1",
+      "reportNos": "80402",
+      "quart": "2",
+      "disclosureType": 1,
+      "lspan": 29,
+      "nmspan": 1,
+      "mspan": 1,
+      "mrn": 17,
+      "mcnt": 1
+    },
+    {
       "lcd": "8",
       "lcdnm": "ESG 운영",
       "nmcd": "RPTMGR0801",
@@ -579,7 +599,7 @@
       "lspan": 1,
       "nmspan": 1,
       "mspan": 1,
-      "mrn": 17,
+      "mrn": 18,
       "mcnt": 1
     },
     {
@@ -599,8 +619,8 @@
       "lspan": 2,
       "nmspan": 1,
       "mspan": 1,
-      "mrn": 18,
-      "mcnt": 2
+      "mrn": 19,
+      "mcnt": 3
     },
     {
       "lcd": "8",
@@ -619,8 +639,28 @@
       "lspan": 3,
       "nmspan": 2,
       "mspan": 2,
-      "mrn": 18,
-      "mcnt": 2
+      "mrn": 19,
+      "mcnt": 3
+    },
+    {
+      "lcd": "8",
+      "lcdnm": "ESG 운영",
+      "nmcd": "RPTMGR0802",
+      "nmcdnm": "E(환경)",
+      "mcd": "21610",
+      "mcdnm": "대기환경",
+      "scd": "21672",
+      "scdnm": "대기오염물질 배출량",
+      "reportYn": "Y",
+      "reportType": "1",
+      "reportNos": "21672",
+      "quart": "2",
+      "disclosureType": 1,
+      "lspan": 4,
+      "nmspan": 3,
+      "mspan": 3,
+      "mrn": 19,
+      "mcnt": 3
     },
     {
       "lcd": "8",
@@ -636,11 +676,11 @@
       "reportNos": "21621",
       "quart": "1",
       "disclosureType": 1,
-      "lspan": 4,
-      "nmspan": 3,
+      "lspan": 5,
+      "nmspan": 4,
       "mspan": 1,
-      "mrn": 19,
-      "mcnt": 3
+      "mrn": 20,
+      "mcnt": 5
     },
     {
       "lcd": "8",
@@ -656,11 +696,11 @@
       "reportNos": "21631",
       "quart": "1",
       "disclosureType": 1,
-      "lspan": 5,
-      "nmspan": 4,
+      "lspan": 6,
+      "nmspan": 5,
       "mspan": 2,
-      "mrn": 19,
-      "mcnt": 3
+      "mrn": 20,
+      "mcnt": 5
     },
     {
       "lcd": "8",
@@ -676,11 +716,51 @@
       "reportNos": "21641",
       "quart": "1",
       "disclosureType": 1,
-      "lspan": 6,
-      "nmspan": 5,
+      "lspan": 7,
+      "nmspan": 6,
       "mspan": 3,
-      "mrn": 19,
-      "mcnt": 3
+      "mrn": 20,
+      "mcnt": 5
+    },
+    {
+      "lcd": "8",
+      "lcdnm": "ESG 운영",
+      "nmcd": "RPTMGR0802",
+      "nmcdnm": "E(환경)",
+      "mcd": "21620",
+      "mcdnm": "자원환경",
+      "scd": "21681",
+      "scdnm": "화학물질 배출량",
+      "reportYn": "Y",
+      "reportType": "1",
+      "reportNos": "21681",
+      "quart": "1",
+      "disclosureType": 1,
+      "lspan": 8,
+      "nmspan": 7,
+      "mspan": 4,
+      "mrn": 20,
+      "mcnt": 5
+    },
+    {
+      "lcd": "8",
+      "lcdnm": "ESG 운영",
+      "nmcd": "RPTMGR0802",
+      "nmcdnm": "E(환경)",
+      "mcd": "21620",
+      "mcdnm": "자원환경",
+      "scd": "21691",
+      "scdnm": "수질오염물질 배출량",
+      "reportYn": "Y",
+      "reportType": "1",
+      "reportNos": "21691",
+      "quart": "1",
+      "disclosureType": 1,
+      "lspan": 9,
+      "nmspan": 8,
+      "mspan": 5,
+      "mrn": 20,
+      "mcnt": 5
     },
     {
       "lcd": "8",
@@ -696,11 +776,11 @@
       "reportNos": "70413",
       "quart": "3",
       "disclosureType": 1,
-      "lspan": 7,
-      "nmspan": 6,
+      "lspan": 10,
+      "nmspan": 9,
       "mspan": 1,
-      "mrn": 20,
-      "mcnt": 2
+      "mrn": 21,
+      "mcnt": 3
     },
     {
       "lcd": "8",
@@ -716,11 +796,31 @@
       "reportNos": "B1270",
       "quart": "0",
       "disclosureType": 4,
-      "lspan": 8,
-      "nmspan": 7,
+      "lspan": 11,
+      "nmspan": 10,
       "mspan": 2,
-      "mrn": 20,
-      "mcnt": 2
+      "mrn": 21,
+      "mcnt": 3
+    },
+    {
+      "lcd": "8",
+      "lcdnm": "ESG 운영",
+      "nmcd": "RPTMGR0802",
+      "nmcdnm": "E(환경)",
+      "mcd": "21630",
+      "mcdnm": "환경보호",
+      "scd": "B1290",
+      "scdnm": "환경오염피해 구제 배상 현황",
+      "reportYn": "N",
+      "reportType": "4",
+      "reportNos": "B1290",
+      "quart": "0",
+      "disclosureType": 4,
+      "lspan": 12,
+      "nmspan": 11,
+      "mspan": 3,
+      "mrn": 21,
+      "mcnt": 3
     },
     {
       "lcd": "8",
@@ -728,19 +828,19 @@
       "nmcd": "RPTMGR0803",
       "nmcdnm": "S(사회)",
       "mcd": "70400",
-      "mcdnm": "안전관리 및 정보보호",
+      "mcdnm": "안전관리",
       "scd": "70401",
-      "scdnm": "산업재해 사고사망자수 및 안전사고 사망자수, 안전경영책임보고서",
+      "scdnm": "안전관리현황(안전경영책임보고서)",
       "reportYn": "Y",
       "reportType": "1",
       "reportNos": "70401",
       "quart": "1",
       "disclosureType": 1,
-      "lspan": 9,
+      "lspan": 13,
       "nmspan": 1,
       "mspan": 1,
-      "mrn": 21,
-      "mcnt": 3
+      "mrn": 22,
+      "mcnt": 5
     },
     {
       "lcd": "8",
@@ -748,19 +848,19 @@
       "nmcd": "RPTMGR0803",
       "nmcdnm": "S(사회)",
       "mcd": "70400",
-      "mcdnm": "안전관리 및 정보보호",
+      "mcdnm": "안전관리",
       "scd": "70442",
-      "scdnm": "공공기관 안전관리등급",
+      "scdnm": "안전관리현황(안전관리등급)",
       "reportYn": "Y",
       "reportType": "1",
       "reportNos": "70442",
       "quart": "2",
       "disclosureType": 1,
-      "lspan": 10,
+      "lspan": 14,
       "nmspan": 2,
       "mspan": 2,
-      "mrn": 21,
-      "mcnt": 3
+      "mrn": 22,
+      "mcnt": 5
     },
     {
       "lcd": "8",
@@ -768,19 +868,79 @@
       "nmcd": "RPTMGR0803",
       "nmcdnm": "S(사회)",
       "mcd": "70400",
-      "mcdnm": "안전관리 및 정보보호",
-      "scd": "70432",
-      "scdnm": "개인정보보호",
+      "mcdnm": "안전관리",
+      "scd": "70451",
+      "scdnm": "산업재해 사고 사망자수 및 안전사고 사망자 수(발생)",
+      "reportYn": "Y",
+      "reportType": "1",
+      "reportNos": "70451,70452,70453,70454",
+      "quart": "1,2,3,4",
+      "disclosureType": 1,
+      "lspan": 15,
+      "nmspan": 3,
+      "mspan": 3,
+      "mrn": 22,
+      "mcnt": 5
+    },
+    {
+      "lcd": "8",
+      "lcdnm": "ESG 운영",
+      "nmcd": "RPTMGR0803",
+      "nmcdnm": "S(사회)",
+      "mcd": "70400",
+      "mcdnm": "안전관리",
+      "scd": "70461",
+      "scdnm": "산업재해 사고 사망자 수 및 안전사고 사망자 수(승인)",
+      "reportYn": "Y",
+      "reportType": "1",
+      "reportNos": "70461",
+      "quart": "1",
+      "disclosureType": 1,
+      "lspan": 16,
+      "nmspan": 4,
+      "mspan": 4,
+      "mrn": 22,
+      "mcnt": 5
+    },
+    {
+      "lcd": "8",
+      "lcdnm": "ESG 운영",
+      "nmcd": "RPTMGR0803",
+      "nmcdnm": "S(사회)",
+      "mcd": "70400",
+      "mcdnm": "안전관리",
+      "scd": "70471",
+      "scdnm": "중대재해에 해당하는 부상자수",
+      "reportYn": "Y",
+      "reportType": "1",
+      "reportNos": "70471",
+      "quart": "1",
+      "disclosureType": 1,
+      "lspan": 17,
+      "nmspan": 5,
+      "mspan": 5,
+      "mrn": 22,
+      "mcnt": 5
+    },
+    {
+      "lcd": "8",
+      "lcdnm": "ESG 운영",
+      "nmcd": "RPTMGR0803",
+      "nmcdnm": "S(사회)",
+      "mcd": "70432",
+      "mcdnm": "정보보호",
+      "scd": null,
+      "scdnm": null,
       "reportYn": "Y",
       "reportType": "1",
       "reportNos": "70432",
       "quart": "2",
       "disclosureType": 1,
-      "lspan": 11,
-      "nmspan": 3,
-      "mspan": 3,
-      "mrn": 21,
-      "mcnt": 3
+      "lspan": 18,
+      "nmspan": 6,
+      "mspan": 1,
+      "mrn": 23,
+      "mcnt": 1
     },
     {
       "lcd": "8",
@@ -796,10 +956,10 @@
       "reportNos": "21502",
       "quart": "2",
       "disclosureType": 1,
-      "lspan": 12,
-      "nmspan": 4,
+      "lspan": 19,
+      "nmspan": 7,
       "mspan": 1,
-      "mrn": 22,
+      "mrn": 24,
       "mcnt": 1
     },
     {
@@ -816,10 +976,10 @@
       "reportNos": "21702",
       "quart": "2",
       "disclosureType": 1,
-      "lspan": 13,
-      "nmspan": 5,
+      "lspan": 20,
+      "nmspan": 8,
       "mspan": 1,
-      "mrn": 23,
+      "mrn": 25,
       "mcnt": 1
     },
     {
@@ -828,7 +988,7 @@
       "nmcd": "RPTMGR0803",
       "nmcdnm": "S(사회)",
       "mcd": "21401",
-      "mcdnm": "일·가정 양립 지원제도 운영현황",
+      "mcdnm": "일·가정 양립 지원제도 및 양성평등 운영 현황",
       "scd": null,
       "scdnm": null,
       "reportYn": "Y",
@@ -836,10 +996,10 @@
       "reportNos": "21401",
       "quart": "1",
       "disclosureType": 1,
-      "lspan": 14,
-      "nmspan": 6,
+      "lspan": 21,
+      "nmspan": 9,
       "mspan": 1,
-      "mrn": 24,
+      "mrn": 26,
       "mcnt": 1
     },
     {
@@ -847,20 +1007,40 @@
       "lcdnm": "ESG 운영",
       "nmcd": "RPTMGR0803",
       "nmcdnm": "S(사회)",
-      "mcd": "40102",
-      "mcdnm": "동반성장 평가결과",
-      "scd": null,
-      "scdnm": null,
+      "mcd": "40100",
+      "mcdnm": "협력사 지원",
+      "scd": "40102",
+      "scdnm": "동반성장 평가결과",
       "reportYn": "Y",
       "reportType": "1",
       "reportNos": "40102",
       "quart": "2",
       "disclosureType": 1,
-      "lspan": 15,
-      "nmspan": 7,
+      "lspan": 22,
+      "nmspan": 10,
       "mspan": 1,
-      "mrn": 25,
-      "mcnt": 1
+      "mrn": 27,
+      "mcnt": 2
+    },
+    {
+      "lcd": "8",
+      "lcdnm": "ESG 운영",
+      "nmcd": "RPTMGR0803",
+      "nmcdnm": "S(사회)",
+      "mcd": "40100",
+      "mcdnm": "협력사 지원",
+      "scd": "40202",
+      "scdnm": "협력사 ESG 지원 실적",
+      "reportYn": "Y",
+      "reportType": "1",
+      "reportNos": "40202",
+      "quart": "2",
+      "disclosureType": 1,
+      "lspan": 23,
+      "nmspan": 11,
+      "mspan": 2,
+      "mrn": 27,
+      "mcnt": 2
     },
     {
       "lcd": "8",
@@ -876,10 +1056,10 @@
       "reportNos": "80202",
       "quart": "2",
       "disclosureType": 1,
-      "lspan": 16,
-      "nmspan": 8,
+      "lspan": 24,
+      "nmspan": 12,
       "mspan": 1,
-      "mrn": 26,
+      "mrn": 28,
       "mcnt": 1
     },
     {
@@ -896,10 +1076,10 @@
       "reportNos": "70312",
       "quart": "2",
       "disclosureType": 1,
-      "lspan": 17,
-      "nmspan": 9,
+      "lspan": 25,
+      "nmspan": 13,
       "mspan": 1,
-      "mrn": 27,
+      "mrn": 29,
       "mcnt": 3
     },
     {
@@ -916,10 +1096,10 @@
       "reportNos": "70322",
       "quart": "2",
       "disclosureType": 1,
-      "lspan": 18,
-      "nmspan": 10,
+      "lspan": 26,
+      "nmspan": 14,
       "mspan": 2,
-      "mrn": 27,
+      "mrn": 29,
       "mcnt": 3
     },
     {
@@ -936,10 +1116,10 @@
       "reportNos": "80332",
       "quart": "2",
       "disclosureType": 1,
-      "lspan": 19,
-      "nmspan": 11,
+      "lspan": 27,
+      "nmspan": 15,
       "mspan": 3,
-      "mrn": 27,
+      "mrn": 29,
       "mcnt": 3
     },
     {
@@ -956,10 +1136,10 @@
       "reportNos": "43005",
       "quart": "0",
       "disclosureType": 4,
-      "lspan": 20,
+      "lspan": 28,
       "nmspan": 1,
       "mspan": 1,
-      "mrn": 28,
+      "mrn": 30,
       "mcnt": 2
     },
     {
@@ -976,10 +1156,10 @@
       "reportNos": "43009",
       "quart": "0",
       "disclosureType": 4,
-      "lspan": 21,
+      "lspan": 29,
       "nmspan": 2,
       "mspan": 2,
-      "mrn": 28,
+      "mrn": 30,
       "mcnt": 2
     },
     {
@@ -996,10 +1176,10 @@
       "reportNos": "32311",
       "quart": "1",
       "disclosureType": 1,
-      "lspan": 22,
+      "lspan": 30,
       "nmspan": 3,
       "mspan": 1,
-      "mrn": 29,
+      "mrn": 31,
       "mcnt": 1
     },
     {
@@ -1016,10 +1196,10 @@
       "reportNos": "40211",
       "quart": "1",
       "disclosureType": 1,
-      "lspan": 23,
+      "lspan": 31,
       "nmspan": 4,
       "mspan": 1,
-      "mrn": 30,
+      "mrn": 32,
       "mcnt": 1
     },
     {
@@ -1039,7 +1219,7 @@
       "lspan": 1,
       "nmspan": 1,
       "mspan": 1,
-      "mrn": 31,
+      "mrn": 33,
       "mcnt": 1
     },
     {
@@ -1059,7 +1239,7 @@
       "lspan": 2,
       "nmspan": 2,
       "mspan": 1,
-      "mrn": 32,
+      "mrn": 34,
       "mcnt": 1
     },
     {
@@ -1079,7 +1259,7 @@
       "lspan": 3,
       "nmspan": 3,
       "mspan": 1,
-      "mrn": 33,
+      "mrn": 35,
       "mcnt": 1
     },
     {
@@ -1099,7 +1279,7 @@
       "lspan": 4,
       "nmspan": 4,
       "mspan": 1,
-      "mrn": 34,
+      "mrn": 36,
       "mcnt": 1
     },
     {
@@ -1119,7 +1299,7 @@
       "lspan": 5,
       "nmspan": 5,
       "mspan": 1,
-      "mrn": 35,
+      "mrn": 37,
       "mcnt": 1
     },
     {
@@ -1139,7 +1319,7 @@
       "lspan": 6,
       "nmspan": 6,
       "mspan": 1,
-      "mrn": 36,
+      "mrn": 38,
       "mcnt": 2
     },
     {
@@ -1159,7 +1339,7 @@
       "lspan": 7,
       "nmspan": 7,
       "mspan": 2,
-      "mrn": 36,
+      "mrn": 38,
       "mcnt": 2
     },
     {
@@ -1179,7 +1359,7 @@
       "lspan": 8,
       "nmspan": 8,
       "mspan": 1,
-      "mrn": 37,
+      "mrn": 39,
       "mcnt": 3
     },
     {
@@ -1199,7 +1379,7 @@
       "lspan": 9,
       "nmspan": 9,
       "mspan": 2,
-      "mrn": 37,
+      "mrn": 39,
       "mcnt": 3
     },
     {
@@ -1219,7 +1399,7 @@
       "lspan": 10,
       "nmspan": 10,
       "mspan": 3,
-      "mrn": 37,
+      "mrn": 39,
       "mcnt": 3
     },
     {
@@ -1239,7 +1419,7 @@
       "lspan": 11,
       "nmspan": 1,
       "mspan": 1,
-      "mrn": 38,
+      "mrn": 40,
       "mcnt": 1
     },
     {
@@ -1259,7 +1439,7 @@
       "lspan": 12,
       "nmspan": 2,
       "mspan": 1,
-      "mrn": 39,
+      "mrn": 41,
       "mcnt": 1
     },
     {
@@ -1279,7 +1459,7 @@
       "lspan": 13,
       "nmspan": 3,
       "mspan": 1,
-      "mrn": 40,
+      "mrn": 42,
       "mcnt": 4
     },
     {
@@ -1299,7 +1479,7 @@
       "lspan": 14,
       "nmspan": 4,
       "mspan": 2,
-      "mrn": 40,
+      "mrn": 42,
       "mcnt": 4
     },
     {
@@ -1319,7 +1499,7 @@
       "lspan": 15,
       "nmspan": 5,
       "mspan": 3,
-      "mrn": 40,
+      "mrn": 42,
       "mcnt": 4
     },
     {
@@ -1339,7 +1519,7 @@
       "lspan": 16,
       "nmspan": 6,
       "mspan": 4,
-      "mrn": 40,
+      "mrn": 42,
       "mcnt": 4
     },
     {
@@ -1359,7 +1539,7 @@
       "lspan": 17,
       "nmspan": 1,
       "mspan": 1,
-      "mrn": 41,
+      "mrn": 43,
       "mcnt": 2
     },
     {
@@ -1379,7 +1559,7 @@
       "lspan": 18,
       "nmspan": 2,
       "mspan": 2,
-      "mrn": 41,
+      "mrn": 43,
       "mcnt": 2
     },
     {
@@ -1399,7 +1579,7 @@
       "lspan": 19,
       "nmspan": 3,
       "mspan": 1,
-      "mrn": 42,
+      "mrn": 44,
       "mcnt": 1
     },
     {
@@ -1419,7 +1599,7 @@
       "lspan": 20,
       "nmspan": 4,
       "mspan": 1,
-      "mrn": 43,
+      "mrn": 45,
       "mcnt": 1
     },
     {
@@ -1432,14 +1612,14 @@
       "scd": "B1230",
       "scdnm": "경영실적 평가결과[공기업,준정부]",
       "reportYn": "N",
-      "reportType": "4",
+      "reportType": "1",
       "reportNos": "B1230",
       "quart": "0",
       "disclosureType": 4,
       "lspan": 1,
       "nmspan": 1,
       "mspan": 1,
-      "mrn": 44,
+      "mrn": 46,
       "mcnt": 4
     },
     {
@@ -1459,7 +1639,7 @@
       "lspan": 2,
       "nmspan": 2,
       "mspan": 2,
-      "mrn": 44,
+      "mrn": 46,
       "mcnt": 4
     },
     {
@@ -1479,7 +1659,7 @@
       "lspan": 3,
       "nmspan": 3,
       "mspan": 3,
-      "mrn": 44,
+      "mrn": 46,
       "mcnt": 4
     },
     {
@@ -1492,14 +1672,14 @@
       "scd": "B1250",
       "scdnm": "감사직무실적 평가결과",
       "reportYn": "N",
-      "reportType": "4",
+      "reportType": "1",
       "reportNos": "B1250",
       "quart": "0",
       "disclosureType": 4,
       "lspan": 4,
       "nmspan": 4,
       "mspan": 4,
-      "mrn": 44,
+      "mrn": 46,
       "mcnt": 4
     },
     {
@@ -1519,7 +1699,7 @@
       "lspan": 5,
       "nmspan": 5,
       "mspan": 1,
-      "mrn": 45,
+      "mrn": 47,
       "mcnt": 3
     },
     {
@@ -1539,7 +1719,7 @@
       "lspan": 6,
       "nmspan": 6,
       "mspan": 2,
-      "mrn": 45,
+      "mrn": 47,
       "mcnt": 3
     },
     {
@@ -1559,7 +1739,7 @@
       "lspan": 7,
       "nmspan": 7,
       "mspan": 3,
-      "mrn": 45,
+      "mrn": 47,
       "mcnt": 3
     },
     {
@@ -1572,14 +1752,14 @@
       "scd": null,
       "scdnm": null,
       "reportYn": "N",
-      "reportType": "4",
+      "reportType": "1",
       "reportNos": "B1240",
       "quart": "0",
       "disclosureType": 9,
       "lspan": 8,
       "nmspan": 8,
       "mspan": 1,
-      "mrn": 46,
+      "mrn": 48,
       "mcnt": 1
     },
     {
@@ -1599,7 +1779,7 @@
       "lspan": 9,
       "nmspan": 1,
       "mspan": 1,
-      "mrn": 47,
+      "mrn": 49,
       "mcnt": 2
     },
     {
@@ -1619,7 +1799,7 @@
       "lspan": 10,
       "nmspan": 2,
       "mspan": 2,
-      "mrn": 47,
+      "mrn": 49,
       "mcnt": 2
     },
     {
@@ -1639,7 +1819,7 @@
       "lspan": 11,
       "nmspan": 3,
       "mspan": 1,
-      "mrn": 48,
+      "mrn": 50,
       "mcnt": 2
     },
     {
@@ -1659,7 +1839,7 @@
       "lspan": 12,
       "nmspan": 4,
       "mspan": 2,
-      "mrn": 48,
+      "mrn": 50,
       "mcnt": 2
     }
   ]

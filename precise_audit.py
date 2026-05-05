@@ -141,40 +141,45 @@ def jung_precise(m, sess, root_no):
 
 
 def audit_precise(m, sess, root_no):
-    """audit type: itemReportFiles.json + dfile.json"""
-    # 1) itemOrganListJung로 disclosureNo, submissionNo 추출
-    url = f"{m.BASE_URL}/item/itemOrganListJung.json"
-    body = {"reportFormRootNo": root_no, "apbaType": [], "jidtDptm": [],
-            "area": [], "apba_id": "", "pageNo": 1}
+    """audit/mgmt_eval type: itemReportListSusi → itemReportFiles → dfile.json
+    실제 크롤러 흐름과 동일 (itemOrganListJung 단독 호출 X)
+    """
+    # 1) itemReportListSusi.json으로 보고서 목록 조회 (한산공)
+    url = f"{m.BASE_URL}/item/itemReportListSusi.json"
+    body = {"pageNo": 1, "apbaId": TEST_APBA_ID, "apbaType": "",
+            "reportFormRootNo": root_no,
+            "search_word": "", "search_flag": "title",
+            "bid_type": "", "enfc_istt": ""}
     try:
         r = m.retry_request(sess, "POST", url, json=body,
                             headers={"Content-Type": "application/json;charset=UTF-8"},
                             timeout=15)
-        organs = r.json().get("data", {}).get("organList", [])
-        if isinstance(organs, dict):
-            organs = organs.get("result", [])
-        matches = [o for o in organs if o.get("apbaId") == TEST_APBA_ID]
-        if not matches:
-            return {"records": 0, "pdf": 0, "files": 0, "err": "한산공 매칭 없음"}
-        case = matches[0]
-        dno = case.get("disclosureNo", "") or ""
-        sno = case.get("submissionNo", "") or ""
+        result_list = r.json().get("data", {}).get("result", []) or []
     except Exception as e:
         return {"records": 0, "pdf": 0, "files": 0, "err": str(e)}
 
+    if not result_list:
+        return {"records": 0, "pdf": 0, "files": 0, "err": "한산공 보고서 없음"}
+
+    first = result_list[0]
+    dno = first.get("disclosureNo", "") or ""
+    sno = first.get("submissionNo", "") or ""
     if not dno or not sno:
-        return {"records": 1, "pdf": 0, "files": 0, "err": "dno/sno 없음"}
+        return {"records": len(result_list), "pdf": 0, "files": 0, "err": "dno/sno 없음"}
 
     # 2) itemReportFiles.json 호출
     try:
         fr = sess.get(f"{m.BASE_URL}/item/itemReportFiles.json?disclosureNo={dno}", timeout=15)
         if fr.status_code != 200:
-            return {"records": 1, "pdf": 0, "files": 0, "err": f"files API HTTP {fr.status_code}"}
+            return {"records": len(result_list), "pdf": 0, "files": 0,
+                    "err": f"files API HTTP {fr.status_code}"}
         files_data = fr.json().get("data", []) or []
         if not files_data:
-            return {"records": 1, "pdf": 0, "files": 0, "err": "itemReportFiles.json 빈 응답"}
+            return {"records": len(result_list), "pdf": 0, "files": 0,
+                    "err": "itemReportFiles.json 빈 응답"}
     except Exception as e:
-        return {"records": 1, "pdf": 0, "files": 0, "err": f"files API err: {e}"}
+        return {"records": len(result_list), "pdf": 0, "files": 0,
+                "err": f"files API err: {e}"}
 
     # 3) dfile.json 다운로드 (1개만)
     from urllib.parse import quote
@@ -193,7 +198,7 @@ def audit_precise(m, sess, root_no):
         except Exception:
             pass
 
-    return {"records": 1, "pdf": 0, "files": files_ok,
+    return {"records": len(result_list), "pdf": 0, "files": files_ok,
             "err": "" if files_ok else "dfile.json 다운로드 실패",
             "files_total": len(files_data)}
 
@@ -240,10 +245,84 @@ def envlaw_precise(m, sess, root_no):
         shutil.rmtree(tmpdir, ignore_errors=True)
 
 
-def rule_precise(m, sess, _root_no):
-    """rule type: findRuleList + rulefiledown"""
+def mgmt_eval_precise(m, sess, root_no):
+    """mgmt_eval type: itemReportListSusi → 상세페이지 HTML → download.json
+    실제 크롤러 흐름 (4866~4934번 라인)
+    """
+    import re
+    # 1) itemReportListSusi.json으로 보고서 목록
+    url = f"{m.BASE_URL}/item/itemReportListSusi.json"
+    body = {"pageNo": 1, "apbaId": TEST_APBA_ID, "apbaType": "",
+            "reportFormRootNo": root_no,
+            "search_word": "", "search_flag": "title",
+            "bid_type": "", "enfc_istt": ""}
     try:
-        # 정관(K1500) 1건 조회
+        r = m.retry_request(sess, "POST", url, json=body,
+                            headers={"Content-Type": "application/json;charset=UTF-8"},
+                            timeout=15)
+        result_list = r.json().get("data", {}).get("result", []) or []
+    except Exception as e:
+        return {"records": 0, "pdf": 0, "files": 0, "err": str(e)}
+
+    if not result_list:
+        return {"records": 0, "pdf": 0, "files": 0, "err": "한산공 보고서 없음"}
+
+    first = result_list[0]
+    dno = first.get("disclosureNo", "") or ""
+    report_form_no = first.get("reportFormNo", "") or root_no
+    table_name = first.get("tableName", "") or ""
+    idx_val = first.get("idx", "") or ""
+
+    if not dno:
+        return {"records": len(result_list), "pdf": 0, "files": 0, "err": "disclosureNo 없음"}
+
+    # 2) 상세페이지 HTML 조회
+    detail_url = (
+        f"{m.BASE_URL}/item/itemBoard{report_form_no}.do"
+        f"?disclosureNo={dno}&apbaId={TEST_APBA_ID}"
+        f"&nowcode={report_form_no}&reportFormNo={report_form_no}"
+        f"&table_name={table_name}&idx_name=BOARD_NO&idx={idx_val}"
+        f"&reportGbn=N&bid_type=0"
+    )
+    try:
+        dr = sess.get(detail_url, timeout=30)
+        if dr.status_code != 200:
+            return {"records": len(result_list), "pdf": 0, "files": 0,
+                    "err": f"상세페이지 HTTP {dr.status_code}"}
+    except Exception as e:
+        return {"records": len(result_list), "pdf": 0, "files": 0,
+                "err": f"상세페이지 err: {e}"}
+
+    # 3) HTML에서 fileNo 파싱
+    file_links = re.findall(
+        r'href="/download/download\.json\?fileNo=(\d+)"[^>]*>([^<]+)</a>',
+        dr.text
+    )
+    if not file_links:
+        return {"records": len(result_list), "pdf": 0, "files": 0,
+                "err": "HTML 첨부 0개"}
+
+    # 4) 첫 파일 다운로드
+    fno, fname = file_links[0]
+    try:
+        fr = sess.get(f"{m.BASE_URL}/download/download.json", params={"fileNo": fno}, timeout=30)
+        if fr.status_code == 200 and len(fr.content) > 100:
+            ct = (fr.headers.get("Content-Type") or "").lower()
+            if "html" not in ct:
+                return {"records": len(result_list), "pdf": 0, "files": 1, "err": "",
+                        "files_total": len(file_links)}
+    except Exception:
+        pass
+    return {"records": len(result_list), "pdf": 0, "files": 0,
+            "err": f"download.json HTTP {fr.status_code}"}
+
+
+def rule_precise(m, sess, _root_no):
+    """rule type: findRuleList → findRuleDtl → bFiles 파싱 → rulefiledown
+    실제 크롤러 흐름과 동일 (findRuleDtl 호출이 핵심)
+    """
+    try:
+        # 1) 정관(K1500) 1건 조회 — seq 추출
         r = sess.get(f"{m.BASE_URL}/occasional/findRuleList.json",
                      params={"type": "apbaNa", "word": TEST_APBA_NAME,
                              "pageNo": 1, "divis": "K1500"}, timeout=15)
@@ -252,22 +331,40 @@ def rule_precise(m, sess, _root_no):
             return {"records": 0, "pdf": 0, "files": 0, "err": "내부규정 없음"}
 
         first = rules[0]
-        # files 필드에서 fileNo 추출 시도
-        files_str = first.get("files", "") or ""
-        files_parsed = m.parse_files_field(files_str)
-        if not files_parsed:
-            return {"records": len(rules), "pdf": 0, "files": 0, "err": "files 필드 비어있음"}
+        seq = first.get("seq", "")
+        if not seq:
+            return {"records": len(rules), "pdf": 0, "files": 0, "err": "seq 없음"}
 
-        # rulefiledown.json 다운로드
-        first_file = files_parsed[0]
-        fid = first_file.get("id", "")
-        if not fid:
-            return {"records": len(rules), "pdf": 0, "files": 0, "err": "fileNo 없음"}
-        rr = sess.get(f"{m.BASE_URL}/download/rulefiledown.json?fileNo={fid}", timeout=20)
+        # 2) findRuleDtl 호출 — bFiles 파싱
+        dr = sess.get(f"{m.BASE_URL}/occasional/findRuleDtl.json",
+                      params={"seq": seq}, timeout=15)
+        if dr.status_code != 200:
+            return {"records": len(rules), "pdf": 0, "files": 0,
+                    "err": f"findRuleDtl HTTP {dr.status_code}"}
+        b_files = dr.json().get("data", {}).get("bFiles", "") or ""
+        if not b_files:
+            return {"records": len(rules), "pdf": 0, "files": 0, "err": "bFiles 비어있음"}
+
+        # bFiles 형식: "fileNo|fileName,fileNo|fileName,..."
+        files = []
+        for entry in b_files.split(","):
+            if "|" in entry:
+                fno, fname = entry.split("|", 1)
+                fno, fname = fno.strip(), fname.strip()
+                if not fname.lower().endswith(".zip"):  # zip 제외
+                    files.append((fno, fname))
+        if not files:
+            return {"records": len(rules), "pdf": 0, "files": 0, "err": "유효 파일 없음"}
+
+        # 3) rulefiledown.json 다운로드 (1개)
+        fno, fname = files[0]
+        rr = sess.get(f"{m.BASE_URL}/download/rulefiledown.json",
+                      params={"fileNo": fno}, timeout=30)
         if rr.status_code == 200 and len(rr.content) > 100:
             ct = (rr.headers.get("Content-Type") or "").lower()
             if "html" not in ct:
-                return {"records": len(rules), "pdf": 0, "files": 1, "err": ""}
+                return {"records": len(rules), "pdf": 0, "files": 1, "err": "",
+                        "files_total": len(files)}
         return {"records": len(rules), "pdf": 0, "files": 0,
                 "err": f"rulefiledown HTTP {rr.status_code}"}
     except Exception as e:
@@ -311,7 +408,7 @@ def main():
         elif type_ == "audit":
             r = audit_precise(m, sess, rn)
         elif type_ == "mgmt_eval":
-            r = audit_precise(m, sess, rn)  # 동일 흐름
+            r = mgmt_eval_precise(m, sess, rn)
         elif type_ == "rule":
             r = rule_precise(m, sess, rn)
         else:
