@@ -23,6 +23,18 @@
 - GUI: 순수 tkinter + ttk 기본 테마
 - 의존: `requests`, `openpyxl`, `beautifulsoup4`
 
+## 공유 라이브러리 (`alio_core.py`)
+
+알리오 API 호출·HTML 파싱·다운로드 코어 600라인은 **`alio_core.py`** 한 파일에 모여 있다. 이 파일은 [alio-mcp](https://github.com/giovinazo/alio-mcp) 레포의 정본을 **sync한 사본**이며, 두 프로젝트가 동일 코어를 공유한다.
+
+- **직접 수정 금지** — 알리오 사이트 패턴이 바뀌면 alio-mcp 정본을 수정한 뒤 sync한다.
+- **동기화 절차** (alio-mcp 폴더에 형제로 위치한 경우):
+  ```bash
+  cd ../alio-mcp && ./sync_to_crawler.sh
+  ```
+  다른 위치라면 `CRAWLER_DIR=/path/to/this ./sync_to_crawler.sh`.
+- alio-mcp 없이도 본 레포 단독으로 `python3 alio_crawler_v5.4.py` 실행 가능.
+
 ## 실행
 
 ```bash
