@@ -4,6 +4,13 @@
 
 > 알리오 사이트에서 기관마다 일일이 클릭해서 받아야 하는 PDF·HWP·엑셀 첨부파일을 자동으로 폴더에 정리해 받는 도구.
 
+### 지금 바로 시작하기
+
+1. **[Download ZIP](https://github.com/giovinazo/alio-crawler/archive/refs/heads/main.zip)** 클릭
+2. 압축 풀고 `alio_crawler_v5.4.py` 실행 (`python3 alio_crawler_v5.4.py`)
+
+> 설치가 어려우면 — ZIP을 [Claude Desktop](https://claude.ai/download) 대화에 올리고 **"이거 설치 도와줘"** 입력
+
 ## 주요 기능
 
 - 알리오 항목별공시 **전 항목(92개, 2026-05 기준) 자동 수집** — `formList.json` API 활용
