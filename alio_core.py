@@ -448,31 +448,61 @@ def _resolve_collision_path(target_path):
     return f"{base}({n}){ext}"
 
 
-def download_file_to_path(session, url, save_path, params=None, timeout=60):
+def download_file_to_path(session, url, save_path, params=None, timeout=60,
+                          max_retries=3, backoff=1.0):
     """파일 단일 다운로드. JSON 응답이면 API 에러로 간주.
+
+    스트리밍(iter_content) 도중 연결이 끊기는 경우(ConnectionResetError·ReadTimeout
+    등)는 retry_request로 잡히지 않는다 — 응답 헤더(200) 수신 후 본문 전송 중
+    발생하기 때문이다. 따라서 요청+스트리밍 전체를 max_retries만큼 재시도하고,
+    부분 파일이 남지 않도록 .part 임시파일에 받은 뒤 성공 시 원자적으로 교체한다.
+
     반환: (success, saved_path, message)
     """
-    try:
-        resp = retry_request(session, "GET", url, params=params, timeout=timeout, stream=True)
-        if resp.status_code != 200:
-            return False, "", f"HTTP {resp.status_code}"
+    target = _resolve_collision_path(save_path)
+    tmp = target + ".part"
+    last_err = ""
+    for attempt in range(max_retries + 1):
+        try:
+            # 재시도 책임을 이 외부 루프로 일원화한다(max_retries=0). 그러지 않으면
+            # retry_request 내부 재시도(기본 3회)와 외부 루프(max_retries회)가 곱해져
+            # 헤더 단계 오류 시 최대 (n+1)^2회·backoff 누적으로 장시간 블로킹된다.
+            # 본문 스트리밍 끊김은 어차피 retry_request가 못 잡으므로 외부 루프가 필요.
+            resp = retry_request(session, "GET", url, params=params, timeout=timeout,
+                                 stream=True, max_retries=0)
+            if resp.status_code != 200:
+                last_err = f"HTTP {resp.status_code}"
+                if resp.status_code in _RETRIABLE_STATUS_CODES and attempt < max_retries:
+                    time.sleep(backoff * (2 ** attempt) + random.uniform(0, 0.5))
+                    continue
+                return False, "", last_err
 
-        ct = (resp.headers.get("Content-Type") or "").lower()
-        if "json" in ct:
+            ct = (resp.headers.get("Content-Type") or "").lower()
+            if "json" in ct:
+                try:
+                    err = resp.json()
+                    return False, "", f"API error: {err.get('message') or 'unknown'}"
+                except (json.JSONDecodeError, ValueError):
+                    pass
+
+            with open(tmp, "wb") as f:
+                for chunk in resp.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+            os.replace(tmp, target)
+            return True, target, "OK"
+        except (requests.RequestException, OSError) as e:
+            last_err = str(e)
             try:
-                err = resp.json()
-                return False, "", f"API error: {err.get('message') or 'unknown'}"
-            except (json.JSONDecodeError, ValueError):
+                if os.path.exists(tmp):
+                    os.remove(tmp)
+            except OSError:
                 pass
-
-        target = _resolve_collision_path(save_path)
-        with open(target, "wb") as f:
-            for chunk in resp.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
-        return True, target, "OK"
-    except (requests.RequestException, OSError) as e:
-        return False, "", str(e)
+            if attempt < max_retries:
+                time.sleep(backoff * (2 ** attempt) + random.uniform(0, 0.5))
+                continue
+            return False, "", last_err
+    return False, "", last_err
 
 
 # ─────────────────────────────────────────────────────────
@@ -658,6 +688,127 @@ def download_attachment(session, kind, file_info, save_dir,
 # 공공기관 목록 (지역 포함, 병렬 처리)
 # ─────────────────────────────────────────────────────────
 
+# ─────────────────────────────────────────────────────────
+# 보고서형 본문(HTML 표) 조회 — itemReportRight.do
+# ─────────────────────────────────────────────────────────
+
+def html_to_text(html: str) -> str:
+    """HTML → 평문 (script/style 제거·태그 제거·엔티티 복원·공백 정규화)."""
+    s = re.sub(r"(?is)<(script|style)[^>]*>.*?</\1>", " ", html)
+    s = re.sub(r"<[^>]+>", " ", s)
+    s = (s.replace("&nbsp;", " ").replace("&amp;", "&")
+           .replace("&lt;", "<").replace("&gt;", ">")
+           .replace("&quot;", '"').replace("&#39;", "'"))
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def parse_html_tables(html: str) -> list:
+    """HTML <table>들을 행렬(list[list[str]])로 추출. 빈 행·빈 표 제외.
+
+    itemReportRight.do는 Vue 레이아웃 table이 섞여 있어 비탐욕 매칭으로
+    가장 안쪽 셀까지 평문화한다. 표 경계가 부정확할 수 있으므로 본문
+    평문(html_to_text)을 항상 함께 제공해 보조한다.
+    """
+    tables = []
+    for tm in re.finditer(r"(?is)<table[^>]*>(.*?)</table>", html):
+        rows = []
+        for rm in re.finditer(r"(?is)<tr[^>]*>(.*?)</tr>", tm.group(1)):
+            cells = [
+                html_to_text(c)
+                for c in re.findall(r"(?is)<t[hd][^>]*>(.*?)</t[hd]>", rm.group(1))
+            ]
+            if any(cell for cell in cells):
+                rows.append(cells)
+        if rows:
+            tables.append(rows)
+    return tables
+
+
+def fetch_report_tables(session, disclosure_no: str) -> dict:
+    """보고서형 공시의 본문을 itemReportRight.do HTML에서 표·평문으로 추출.
+
+    download_report(PDF 저장)와 달리 파일을 만들지 않고 내용을 즉시 반환한다.
+    징계현황·임직원수·복리후생비 등 보고서형 항목의 실데이터를 PDF/HWP 변환
+    없이 LLM이 바로 읽을 수 있다. pdf.json이 "해당 사항이 없는 항목입니다"
+    boilerplate를 주는 항목(임직원수·임원연봉 등)도 이 HTML 경로는 실데이터다.
+
+    Args:
+        session: create_session() 세션.
+        disclosure_no: 공시번호 (list_organs / itemOrganListJung의 disclosureNo).
+
+    반환:
+        성공: {"disclosureNo", "제목", "표_개수", "표": [[셀,...],...], "본문텍스트"}
+        실패: {"error": "..."}
+    """
+    if not disclosure_no:
+        return {"error": "MISSING: disclosureNo가 필수입니다"}
+
+    url = f"{BASE_URL}/item/itemReportRight.do"
+    try:
+        resp = retry_request(session, "GET", url,
+                             params={"disclosureNo": disclosure_no})
+        if resp.status_code != 200:
+            return {"error": f"REQUEST_FAILED: HTTP {resp.status_code}"}
+    except (requests.RequestException, OSError) as e:
+        return {"error": f"REQUEST_FAILED: {e}"}
+
+    html = resp.text
+    tables = parse_html_tables(html)
+    text = html_to_text(html)
+    if not tables and not text:
+        return {"error": f"EMPTY: disclosureNo='{disclosure_no}' 본문 없음 "
+                          "(순수 첨부 항목일 수 있음 — download_* 도구 사용)"}
+
+    return {
+        "disclosureNo": disclosure_no,
+        "제목": text[:60].strip(),
+        "표_개수": len(tables),
+        "표": tables,
+        "본문텍스트": text[:4000],
+    }
+
+
+def fetch_disclosure_attachments(session, disclosure_no: str) -> dict:
+    """보고서형 공시의 부속 첨부 메타를 itemReportFiles.json에서 조회.
+
+    download_disclosure_attachment 호출에 필요한 식별자를 한 번에 제공한다:
+      - fileNo       → kind='file'의 fileId (file.json ?f=fileNo&d=disclosureNo)
+      - fileName     → kind='dfile'의 fileName (dfile.json ?fileName=&submissionNo=)
+      - submissionNo → kind='dfile'에 필요
+
+    itemOrganListJung의 'files'(id@name) 필드와 동일 파일집합을 가리키되, 보고서형
+    전반(손익계산서·복리후생비 부속·안전경영책임보고서 등)에 공통이고 disclosureNo
+    하나로 조회되므로 도구 노출에 적합하다.
+
+    반환: {"disclosureNo", "첨부": [{"fileNo","fileName","submissionNo",
+           "fileType","savePath"}, ...]} | {"error": ...}
+    """
+    if not disclosure_no:
+        return {"error": "MISSING: disclosureNo가 필수입니다"}
+    url = f"{BASE_URL}/item/itemReportFiles.json"
+    try:
+        resp = retry_request(session, "GET", url,
+                             params={"disclosureNo": disclosure_no}, timeout=20)
+        if resp.status_code != 200:
+            return {"error": f"REQUEST_FAILED: HTTP {resp.status_code}"}
+        raw = resp.json().get("data", [])
+        data = raw if isinstance(raw, list) else []  # 스칼라/딕트 응답에도 안전(Node Array.isArray 가드와 동등)
+    except (requests.RequestException, ValueError, OSError) as e:
+        return {"error": f"REQUEST_FAILED: {e}"}
+    files = []
+    for f in data:
+        if not isinstance(f, dict):
+            continue
+        files.append({
+            "fileNo": str(f.get("fileNo", "") or ""),
+            "fileName": f.get("orcpFileNa", "") or f.get("saveFileNa", "") or "",
+            "submissionNo": str(f.get("submissionNo", "") or ""),
+            "fileType": f.get("fileType", "") or "",
+            "savePath": f.get("savePath", "") or "",
+        })
+    return {"disclosureNo": disclosure_no, "첨부": files}
+
+
 def load_public_institutions(progress_callback=None):
     """ALIO 기관목록 API에서 기관 목록 로드 (지역 정보 포함).
 
@@ -744,6 +895,161 @@ def load_public_institutions(progress_callback=None):
     except Exception as e:
         print(f"공공기관 목록 로드 실패: {e}")
         return {}
+
+
+# ─────────────────────────────────────────────────────────
+# 기관 프로필 / 다중기관 disclosureNo / 정형 집계 (v1.3.0)
+# ─────────────────────────────────────────────────────────
+
+def _clean_field(v) -> str:
+    """API 값 정규화 — None/'None'/'null'은 빈 문자열로."""
+    if v is None:
+        return ""
+    s = str(v).strip()
+    return "" if s.lower() in ("none", "null") else s
+
+
+def fetch_organ_profile(session, apba_id: str) -> dict:
+    """findOrganApbaList.json의 apba_id 필터로 기관 마스터 정보 1건 조회.
+
+    search_organs가 주지 않는 기관장·홈페이지·주소·설립일·소개 등을 반환한다.
+    반환: {기관ID, 기관명, 기관유형, 주무부처, 기관장, 홈페이지, 주소, 지역,
+           설립일, 예산, 소개, 유튜브, 상위기관, submissionNo} | {"error": ...}
+    """
+    if not apba_id:
+        return {"error": "MISSING: apba_id가 필수입니다"}
+    url = f"{BASE_URL}/organ/findOrganApbaList.json"
+    headers = {"Content-Type": "application/json;charset=UTF-8",
+               "X-Requested-With": "XMLHttpRequest"}
+    body = {"apbaType": [], "jidtDptm": [], "area": [], "apba_id": apba_id, "pageNo": 1}
+    try:
+        resp = retry_request(session, "POST", url, json=body, headers=headers, timeout=30)
+        if resp.status_code != 200:
+            return {"error": f"REQUEST_FAILED: HTTP {resp.status_code}"}
+        node = resp.json().get("data", {}).get("organList", {})
+        result = node.get("result", []) if isinstance(node, dict) else (node or [])
+    except (requests.RequestException, OSError, ValueError) as e:
+        return {"error": f"REQUEST_FAILED: {e}"}
+    match = next((o for o in result if o.get("apbaId") == apba_id), None)
+    if not match:
+        return {"error": f"NOT_FOUND: apba_id='{apba_id}' 기관 없음"}
+    return {
+        "기관ID": match.get("apbaId", ""),
+        "기관명": match.get("apbaNa", ""),
+        "기관유형": _clean_field(match.get("typeNa")),
+        "주무부처": _clean_field(match.get("jidtNa")),
+        "기관장": _clean_field(match.get("ceo")),
+        "홈페이지": _clean_field(match.get("homepage")),
+        "주소": _clean_field(match.get("addr1")),
+        "지역": _clean_field(match.get("addrCd")),
+        "설립일": _clean_field(match.get("fdate")),
+        "예산": _clean_field(match.get("fmoney")),
+        "소개": _clean_field(match.get("contents")).replace("&cr;", "\n"),
+        "유튜브": _clean_field(match.get("youtUrl")),
+        "상위기관": _clean_field(match.get("parnApbaNa")),
+        "submissionNo": _clean_field(match.get("submissionNo")),
+    }
+
+
+def fetch_organ_disclosure_map(session, root_no: str, apba_ids) -> dict:
+    """itemOrganListJung 1회 호출로 지정 기관들의 disclosureNo만 추출.
+
+    itemOrganListJung은 apba_id 필터를 무시하므로 전체를 받아 클라이언트에서
+    apba_ids만 추린다. 전체 organList는 반환하지 않는다(토큰 절약).
+    반환: {apba_id: {"기관명", "disclosureNo", "submissionNo"}, ...}
+    """
+    primary = (root_no or "").split(",")[0].strip()
+    if not primary:
+        return {}
+    want = set(apba_ids or [])
+    url = f"{BASE_URL}/item/itemOrganListJung.json"
+    body = {"reportFormRootNo": primary, "apbaType": [], "jidtDptm": [],
+            "area": [], "apba_id": "", "pageNo": 1}
+    try:
+        resp = retry_request(session, "POST", url, json=body,
+                             headers={"Content-Type": "application/json;charset=UTF-8"}, timeout=30)
+        organs = (resp.json().get("data") or {}).get("organList", [])
+        if isinstance(organs, dict):
+            organs = organs.get("result", [])
+    except (requests.RequestException, OSError, ValueError):
+        return {}
+    out = {}
+    for o in (organs or []):
+        aid = o.get("apbaId")
+        if aid in want:
+            out[aid] = {
+                "기관명": o.get("apbaNa", ""),
+                "disclosureNo": (o.get("disclosureNo") or "").strip(),
+                "submissionNo": (o.get("submissionNo") or "").strip(),
+            }
+    return out
+
+
+# 징계종류 표준 6종 (중징계: 파면·해임·강등·정직 / 경징계: 감봉·견책)
+_DISCIPLINE_CATS = ["파면", "해임", "강등", "정직", "감봉", "견책"]
+_YEAR_RE = re.compile(r"^(\d{4})년$")
+
+
+def summarize_discipline_table(tables) -> dict:
+    """징계처분 현황(21211) itemReportRight.do 표에서 징계종류별 건수 집계.
+
+    '징계종류' 헤더를 가진 표를 찾아 해당 컬럼을 분류·카운트한다.
+    출근정지→정직, 표준 6종 부분일치, 미매칭→기타.
+    반환: {"징계건수": {종류: n}, "총건수": N, "기타종류": [원문, ...]}
+    """
+    counts = {c: 0 for c in _DISCIPLINE_CATS}
+    counts["기타"] = 0
+    others = []
+    total = 0
+    for tbl in (tables or []):
+        if not tbl or "징계종류" not in tbl[0]:
+            continue
+        col = tbl[0].index("징계종류")
+        for row in tbl[1:]:
+            if col >= len(row):
+                continue
+            jong = (row[col] or "").strip()
+            if not jong:
+                continue
+            total += 1
+            if "출근정지" in jong:
+                counts["정직"] += 1
+                continue
+            matched = next((c for c in _DISCIPLINE_CATS if c in jong), None)
+            if matched:
+                counts[matched] += 1
+            else:
+                counts["기타"] += 1
+                others.append(jong)
+        break  # 첫 '징계종류' 표만
+    return {"징계건수": counts, "총건수": total, "기타종류": others}
+
+
+def summarize_integrity_table(tables) -> dict:
+    """청렴도 평가결과(40211) 표에서 연도별 등급 추출.
+
+    헤더의 'YYYY년' 컬럼을 연도로, '청렴도' 포함 행의 연도별 값을 등급으로.
+    반환: {"연도별등급": {"2021": "4등급", ...}, "연도": [...]}
+    """
+    for tbl in (tables or []):
+        if not tbl:
+            continue
+        year_cols = []
+        for i, h in enumerate(tbl[0]):
+            m = _YEAR_RE.match((h or "").strip())
+            if m:
+                year_cols.append((i, m.group(1)))
+        if not year_cols:
+            continue
+        grade_row = next((r for r in tbl[1:] if r and "청렴도" in (r[0] or "")), None)
+        if not grade_row:
+            continue
+        grades = {}
+        for i, yr in year_cols:
+            val = (grade_row[i] or "").strip() if i < len(grade_row) else ""
+            grades[yr] = val if (val and val != "해당없음") else "-"
+        return {"연도별등급": grades, "연도": [yr for _, yr in year_cols]}
+    return {"연도별등급": {}, "연도": []}
 
 
 # ─────────────────────────────────────────────────────────
