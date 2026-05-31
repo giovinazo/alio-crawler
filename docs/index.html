@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALIO Crawler — 공공기관 경영정보 일괄 수집기</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface2: #1a1a28;
+  --surface3: #222236;
+  --border: #1e1e2e;
+  --border2: #2a2a3e;
+  --text: #e0e0e8;
+  --text-dim: #8a8aa5;
+  --text-muted: #555570;
+  --accent: #6c8cff;
+  --accent2: #a78bfa;
+  --green: #4ade80;
+  --red: #f87171;
+  --orange: #fb923c;
+  --cyan: #22d3ee;
+  --yellow: #fbbf24;
+}
+
+html { font-size: 17px; scroll-behavior: smooth; }
+
+body {
+  font-family: 'Noto Sans KR', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── Navigation ── */
+.nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  z-index: 200;
+  background: rgba(10,10,15,0.85);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
+.nav-logo span { color: var(--text-dim); font-weight: 400; }
+
+.nav-links { display: flex; gap: 1.5rem; }
+.nav-links a {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--text); }
+
+/* ── Sections ── */
+section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 2rem 4rem;
+  position: relative;
+}
+
+section:nth-child(even) { background: var(--surface); }
+
+.section-inner {
+  max-width: 900px;
+  width: 100%;
+}
+
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 1.2rem;
+  letter-spacing: 0.03em;
+}
+
+.section-title {
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.section-desc {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  max-width: 600px;
+  margin-bottom: 2.5rem;
+}
+
+/* ── Hero ── */
+.hero {
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6rem 2rem;
+  background: radial-gradient(ellipse at 50% 30%, rgba(108,140,255,0.06) 0%, transparent 70%);
+}
+
+.hero-version {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 1rem;
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-bottom: 2rem;
+}
+
+.hero-version .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 900;
+  line-height: 1.3;
+  margin-bottom: 1.2rem;
+}
+
+.hero h1 .gradient {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-sub {
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  max-width: 540px;
+  margin: 0 auto 3rem;
+  line-height: 1.8;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 3rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-num {
+  font-size: 2rem;
+  font-weight: 900;
+  font-family: 'JetBrains Mono', monospace;
+  background: linear-gradient(135deg, var(--accent), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 0.3rem;
+}
+
+/* ── Steps Overview ── */
+.steps-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.step-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.8rem 1.5rem;
+  text-align: center;
+  transition: border-color 0.3s, transform 0.3s;
+}
+
+.step-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+}
+
+.step-num {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.step-card h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.step-card p {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.step-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 1.2rem;
+}
+
+/* ── GUI Mockup ── */
+.gui-window {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  margin: 2rem 0;
+}
+
+.gui-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+
+.gui-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+
+.gui-dot.r { background: #ff5f57; }
+.gui-dot.y { background: #febc2e; }
+.gui-dot.g { background: #28c840; }
+
+.gui-titlebar-text {
+  flex: 1;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.gui-body {
+  padding: 1.2rem;
+}
+
+/* Filter Row */
+.gui-filters {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.gui-select {
+  padding: 0.4rem 0.8rem;
+  padding-right: 1.8rem;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 0.75rem;
+  font-family: 'Noto Sans KR', sans-serif;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a8aa5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  cursor: pointer;
+}
+
+.gui-btn {
+  padding: 0.4rem 1rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: 'Noto Sans KR', sans-serif;
+  border: 1px solid var(--border2);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.gui-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.gui-btn.primary:hover { filter: brightness(1.15); }
+
+.gui-btn.secondary {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.gui-btn.secondary:hover { border-color: var(--accent); }
+
+.gui-btn.danger {
+  background: rgba(248,113,113,0.1);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* Control Buttons */
+.gui-controls {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.gui-controls .gui-btn {
+  padding: 0.5rem 1.2rem;
+  font-size: 0.8rem;
+}
+
+/* Treeview */
+.gui-tree {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.gui-tree-header {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr 1fr 0.8fr;
+  padding: 0.5rem 0.6rem;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.gui-tree-row {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr 1fr 0.8fr;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+  align-items: center;
+}
+
+.gui-tree-row:last-child { border-bottom: none; }
+.gui-tree-row:hover { background: rgba(108,140,255,0.05); }
+.gui-tree-row.selected { background: rgba(108,140,255,0.08); }
+
+.gui-checkbox {
+  width: 14px; height: 14px;
+  border: 1.5px solid var(--border2);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  color: var(--accent);
+  background: var(--surface);
+}
+
+.gui-checkbox.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.gui-org-name { font-weight: 500; }
+
+/* Progress */
+.gui-progress-wrap {
+  margin-bottom: 0.8rem;
+}
+
+.gui-progress-bar {
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.4rem;
+}
+
+.gui-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1.5s ease;
+}
+
+.gui-progress-fill.blue { background: linear-gradient(90deg, var(--accent), var(--cyan)); }
+.gui-progress-fill.green { background: linear-gradient(90deg, var(--green), var(--cyan)); }
+
+.gui-progress-text {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Log */
+.gui-log {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  line-height: 1.8;
+  max-height: 180px;
+  overflow-y: auto;
+  color: var(--text-dim);
+}
+
+.gui-log .time { color: var(--text-muted); }
+.gui-log .ok { color: var(--green); }
+.gui-log .info { color: var(--accent); }
+.gui-log .warn { color: var(--orange); }
+.gui-log .file { color: var(--cyan); }
+
+/* ── Item Picker Dialog ── */
+.gui-dialog {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  max-width: 480px;
+  margin: 2rem auto;
+}
+
+.gui-dialog-title {
+  padding: 0.8rem 1rem;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.gui-dialog-body { padding: 1rem; }
+
+.gui-dialog-tree {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.gui-dtree-cat {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  padding: 0.3rem 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gui-dtree-cat::before {
+  content: '▸ ';
+  font-size: 0.6rem;
+}
+
+.gui-dtree-cat.open::before { content: '▾ '; }
+
+.gui-dtree-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem 0.25rem 1.5rem;
+  font-size: 0.72rem;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+
+.gui-dtree-item:hover { background: rgba(108,140,255,0.06); }
+
+.gui-dialog-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.gui-dialog-footer .count {
+  font-size: 0.72rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* ── Feature Grid ── */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.2rem;
+  margin-top: 1rem;
+}
+
+.feature-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  transition: border-color 0.3s, transform 0.3s;
+}
+
+.feature-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.feature-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.feature-icon.blue { background: rgba(108,140,255,0.12); }
+.feature-icon.green { background: rgba(74,222,128,0.12); }
+.feature-icon.purple { background: rgba(167,139,250,0.12); }
+.feature-icon.orange { background: rgba(251,146,60,0.12); }
+.feature-icon.cyan { background: rgba(34,211,238,0.12); }
+.feature-icon.yellow { background: rgba(251,191,36,0.12); }
+
+.feature-card h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.feature-card p {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+/* ── Folder Structure ── */
+.folder-tree {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.2rem 1.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  line-height: 2;
+  color: var(--text-dim);
+  max-width: 520px;
+}
+
+.folder-tree .folder { color: var(--yellow); }
+.folder-tree .file { color: var(--cyan); }
+.folder-tree .ext { color: var(--text-muted); }
+
+/* ── Comparison ── */
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 1.5rem;
+  align-items: center;
+  margin: 2rem 0;
+}
+
+.compare-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.8rem;
+}
+
+.compare-card.before { border-color: rgba(248,113,113,0.3); }
+.compare-card.after { border-color: rgba(74,222,128,0.3); }
+
+.compare-card h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.compare-card ul {
+  list-style: none;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 2;
+}
+
+.compare-card ul li::before {
+  margin-right: 0.5rem;
+  font-size: 0.7rem;
+}
+
+.compare-card.before ul li::before { content: '✕'; color: var(--red); }
+.compare-card.after ul li::before { content: '✓'; color: var(--green); }
+
+.compare-arrow {
+  font-size: 1.5rem;
+  color: var(--text-muted);
+}
+
+/* ── Download Types ── */
+.dl-types {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.dl-type {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.2rem;
+  text-align: center;
+  transition: border-color 0.3s;
+}
+
+.dl-type:hover { border-color: var(--accent); }
+
+.dl-type-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.dl-type h4 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.dl-type p {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.dl-type .tag {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 100px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+.dl-type .tag.pdf { background: rgba(248,113,113,0.12); color: var(--red); }
+.dl-type .tag.hwp { background: rgba(108,140,255,0.12); color: var(--accent); }
+.dl-type .tag.xlsx { background: rgba(74,222,128,0.12); color: var(--green); }
+.dl-type .tag.link { background: rgba(251,146,60,0.12); color: var(--orange); }
+
+/* ── Quick Start ── */
+.qs-steps {
+  counter-reset: qs;
+}
+
+.qs-step {
+  display: flex;
+  gap: 1.2rem;
+  align-items: flex-start;
+  padding: 1.2rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.qs-step:last-child { border-bottom: none; }
+
+.qs-step::before {
+  counter-increment: qs;
+  content: counter(qs);
+  min-width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.qs-step h4 {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+}
+
+.qs-step p {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.qs-step code {
+  background: var(--surface2);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--cyan);
+}
+
+/* ── Annotation ── */
+.annotated {
+  position: relative;
+}
+
+.annotation {
+  position: absolute;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+.annotation-dot {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(108,140,255,0.2);
+}
+
+.annotation-text {
+  background: var(--surface2);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.68rem;
+  color: var(--text);
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* ── CTA ── */
+.cta-box {
+  text-align: center;
+  padding: 3rem;
+  background: linear-gradient(135deg, rgba(108,140,255,0.08), rgba(167,139,250,0.08));
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+}
+
+.cta-box h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+}
+
+.cta-box p {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  margin-bottom: 2rem;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cta-btn:hover { transform: translateY(-2px); }
+
+.cta-btn.primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(108,140,255,0.3);
+}
+
+.cta-btn.secondary {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+}
+
+/* ── Footer ── */
+footer {
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+}
+
+/* ── Scroll Animations ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(25px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  html { font-size: 15px; }
+  section { padding: 4rem 1.2rem 3rem; }
+  .steps-row { grid-template-columns: 1fr; }
+  .step-arrow { transform: rotate(90deg); }
+  .gui-tree-header, .gui-tree-row {
+    grid-template-columns: 2rem 1fr 1fr;
+  }
+  .gui-tree-header > :last-child,
+  .gui-tree-row > :last-child { display: none; }
+  .comparison { grid-template-columns: 1fr; }
+  .compare-arrow { transform: rotate(90deg); }
+  .nav-links { display: none; }
+  .dl-types { grid-template-columns: repeat(2, 1fr); }
+  .hero-stats { gap: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+  <div class="nav-logo">ALIO CRAWLER <span>v5.4</span></div>
+  <div class="nav-links">
+    <a href="#workflow">사용법</a>
+    <a href="#demo-step1">화면 시연</a>
+    <a href="#features">기능</a>
+    <a href="#quickstart">설치</a>
+  </div>
+</nav>
+
+<!-- ━━ Hero ━━ -->
+<section class="hero" id="top">
+  <div class="hero-version"><span class="dot"></span> v5.4.1 — 2026</div>
+  <h1>공공기관 경영정보<br><span class="gradient">일괄 수집기</span></h1>
+  <p class="hero-sub">
+    ALIO(경영정보 공개시스템) 355개 공공기관의 92개 공시항목을<br>
+    클릭 세 번으로 수집 · 다운로드 · 엑셀 저장합니다.
+  </p>
+  <div class="hero-stats">
+    <div class="stat-item">
+      <div class="stat-num">355</div>
+      <div class="stat-label">공공기관</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">92</div>
+      <div class="stat-label">공시항목</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">3</div>
+      <div class="stat-label">클릭</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">5x</div>
+      <div class="stat-label">병렬 수집</div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━ Workflow Overview ━━ -->
+<section id="workflow">
+  <div class="section-inner reveal">
+    <div class="section-label">WORKFLOW</div>
+    <div class="section-title">세 단계로 끝나는 수집</div>
+    <p class="section-desc">필터로 대상을 좁히고, 버튼 세 개를 순서대로 누르면 됩니다.</p>
+    <div class="steps-row">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h3>기관목록 수집</h3>
+        <p>선택한 공시항목에 해당하는 기관 목록을 불러옵니다. 기관유형·부처·지역 필터 적용 가능.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h3>공시내용 수집</h3>
+        <p>체크한 기관의 공시 데이터를 병렬로 다운로드합니다. PDF · HWP · 첨부파일 자동 분류 저장.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h3>엑셀 저장</h3>
+        <p>수집한 데이터를 항목별 컬럼으로 정리한 Excel 파일로 내보냅니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━ Demo: Item Selection ━━ -->
+<section id="demo-step0">
+  <div class="section-inner reveal">
+    <div class="section-label">STEP 0</div>
+    <div class="section-title">공시항목 선택</div>
+    <p class="section-desc">92개 항목이 카테고리별 트리로 정리되어 있습니다. 원하는 항목만 체크하세요.</p>
+
+    <div class="gui-dialog">
+      <div class="gui-dialog-title">공시항목 선택</div>
+      <div class="gui-dialog-body">
+        <div style="display:flex; gap:0.5rem; margin-bottom:0.8rem;">
+          <button class="gui-btn secondary" style="font-size:0.7rem;">전체선택</button>
+          <button class="gui-btn secondary" style="font-size:0.7rem;">전체해제</button>
+          <input type="text" placeholder="항목 검색..." style="flex:1; padding:0.35rem 0.6rem; background:var(--bg); border:1px solid var(--border); border-radius:4px; color:var(--text); font-size:0.72rem; outline:none; font-family:'Noto Sans KR',sans-serif;">
+        </div>
+        <div class="gui-dialog-tree">
+          <div class="gui-dtree-cat open">일반현황 (12개)</div>
+          <div class="gui-dtree-item"><span class="gui-checkbox checked">✓</span> 임직원 수</div>
+          <div class="gui-dtree-item"><span class="gui-checkbox checked">✓</span> 신규채용 현황</div>
+          <div class="gui-dtree-item"><span class="gui-checkbox">　</span> 비정규직 현황</div>
+
+          <div class="gui-dtree-cat open">보수 (9개)</div>
+          <div class="gui-dtree-item"><span class="gui-checkbox checked">✓</span> 임원 보수 현황</div>
+          <div class="gui-dtree-item"><span class="gui-checkbox">　</span> 직원 평균 보수</div>
+
+          <div class="gui-dtree-cat">복리후생 (8개)</div>
+          <div class="gui-dtree-cat open">경영평가·감사 (15개)</div>
+          <div class="gui-dtree-item"><span class="gui-checkbox checked">✓</span> 감사원 감사 지적사항</div>
+          <div class="gui-dtree-item"><span class="gui-checkbox checked">✓</span> 국정감사 시정 및 처리요구사항</div>
+          <div class="gui-dtree-item"><span class="gui-checkbox checked">✓</span> 내부규정</div>
+
+          <div class="gui-dtree-cat">이사회·위원회 (11개)</div>
+          <div class="gui-dtree-cat">입찰·계약 (7개)</div>
+          <div class="gui-dtree-cat">재무·예산 (20개)</div>
+        </div>
+      </div>
+      <div class="gui-dialog-footer">
+        <span class="count">6개 항목 선택됨</span>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="gui-btn secondary" style="font-size:0.72rem;">취소</button>
+          <button class="gui-btn primary" style="font-size:0.72rem;">확인</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━ Demo: Step 1 ━━ -->
+<section id="demo-step1">
+  <div class="section-inner reveal">
+    <div class="section-label">STEP 1</div>
+    <div class="section-title">기관목록 수집 화면</div>
+    <p class="section-desc">필터를 설정하고 [1.기관목록수집] 버튼을 누르면 대상 기관이 아래 표에 나타납니다.</p>
+
+    <div class="gui-window annotated">
+      <div class="gui-titlebar">
+        <div class="gui-dot r"></div>
+        <div class="gui-dot y"></div>
+        <div class="gui-dot g"></div>
+        <div class="gui-titlebar-text">ALIO Crawler v5.4.1</div>
+      </div>
+      <div class="gui-body">
+        <!-- Filters -->
+        <div class="gui-filters">
+          <select class="gui-select"><option>전체 기관유형</option></select>
+          <select class="gui-select"><option>전체 주무부처</option></select>
+          <select class="gui-select"><option>전체 지역</option></select>
+          <button class="gui-btn secondary">공시항목 선택 ▾</button>
+          <button class="gui-btn secondary" style="margin-left:auto;">새로고침</button>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="gui-controls">
+          <button class="gui-btn primary" style="box-shadow:0 0 12px rgba(108,140,255,0.25);">1. 기관목록 수집</button>
+          <button class="gui-btn secondary">2. 공시내용 수집</button>
+          <button class="gui-btn secondary">3. 엑셀 저장</button>
+          <button class="gui-btn danger" style="margin-left:auto;">중지</button>
+        </div>
+
+        <!-- Sub controls -->
+        <div style="display:flex; gap:0.5rem; margin-bottom:0.8rem; flex-wrap:wrap;">
+          <button class="gui-btn secondary" style="font-size:0.68rem;">전체선택</button>
+          <button class="gui-btn secondary" style="font-size:0.68rem;">전체해제</button>
+          <button class="gui-btn secondary" style="font-size:0.68rem;">필터 적용</button>
+          <button class="gui-btn secondary" style="font-size:0.68rem;">필터 해제</button>
+          <div style="flex:1;"></div>
+          <input type="text" placeholder="기관명 검색..." style="padding:0.3rem 0.6rem; background:var(--bg); border:1px solid var(--border); border-radius:4px; color:var(--text); font-size:0.68rem; width:150px; outline:none; font-family:'Noto Sans KR',sans-serif;">
+        </div>
+
+        <!-- Treeview -->
+        <div class="gui-tree">
+          <div class="gui-tree-header">
+            <span></span>
+            <span>기관명</span>
+            <span>공시항목</span>
+            <span>연도</span>
+          </div>
+          <div class="gui-tree-row selected">
+            <span class="gui-checkbox checked">✓</span>
+            <span class="gui-org-name">한국산업단지공단</span>
+            <span style="color:var(--accent)">내부규정</span>
+            <span>2025</span>
+          </div>
+          <div class="gui-tree-row selected">
+            <span class="gui-checkbox checked">✓</span>
+            <span class="gui-org-name">한국무역보험공사</span>
+            <span style="color:var(--accent)">내부규정</span>
+            <span>2025</span>
+          </div>
+          <div class="gui-tree-row selected">
+            <span class="gui-checkbox checked">✓</span>
+            <span class="gui-org-name">한국전력공사</span>
+            <span style="color:var(--accent)">감사원 지적사항</span>
+            <span>2025</span>
+          </div>
+          <div class="gui-tree-row">
+            <span class="gui-checkbox">　</span>
+            <span class="gui-org-name">한국수력원자력</span>
+            <span style="color:var(--accent)">감사원 지적사항</span>
+            <span>2025</span>
+          </div>
+          <div class="gui-tree-row">
+            <span class="gui-checkbox">　</span>
+            <span class="gui-org-name">한국가스공사</span>
+            <span style="color:var(--accent)">임직원 수</span>
+            <span>2025</span>
+          </div>
+          <div class="gui-tree-row">
+            <span class="gui-checkbox">　</span>
+            <span class="gui-org-name">한국토지주택공사</span>
+            <span style="color:var(--accent)">임원 보수 현황</span>
+            <span>2025</span>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="gui-progress-wrap">
+          <div class="gui-progress-bar">
+            <div class="gui-progress-fill blue" style="width: 100%;"></div>
+          </div>
+          <div class="gui-progress-text">355 / 355 기관 수집 완료</div>
+        </div>
+
+        <!-- Log -->
+        <div class="gui-log">
+          <div><span class="time">[14:30:01]</span> <span class="info">기관목록 수집 시작 — 6개 항목</span></div>
+          <div><span class="time">[14:30:02]</span> 내부규정 → 287개 기관 확인</div>
+          <div><span class="time">[14:30:03]</span> 감사원 지적사항 → 42개 기관 확인</div>
+          <div><span class="time">[14:30:03]</span> 임직원 수 → 355개 기관 확인</div>
+          <div><span class="time">[14:30:04]</span> <span class="ok">✓ 총 355개 기관, 6개 항목 수집 완료</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━ Demo: Step 2 ━━ -->
+<section id="demo-step2">
+  <div class="section-inner reveal">
+    <div class="section-label">STEP 2</div>
+    <div class="section-title">공시내용 수집 화면</div>
+    <p class="section-desc">체크한 기관의 공시 데이터와 첨부파일을 병렬로 다운로드합니다. 진행 상황이 실시간으로 표시됩니다.</p>
+
+    <div class="gui-window">
+      <div class="gui-titlebar">
+        <div class="gui-dot r"></div>
+        <div class="gui-dot y"></div>
+        <div class="gui-dot g"></div>
+        <div class="gui-titlebar-text">ALIO Crawler v5.4.1 — 수집 중...</div>
+      </div>
+      <div class="gui-body">
+        <div class="gui-controls">
+          <button class="gui-btn secondary" style="opacity:0.5;">1. 기관목록 수집</button>
+          <button class="gui-btn primary" style="box-shadow:0 0 12px rgba(108,140,255,0.25);">2. 공시내용 수집</button>
+          <button class="gui-btn secondary">3. 엑셀 저장</button>
+          <button class="gui-btn danger" style="margin-left:auto;">중지</button>
+        </div>
+
+        <!-- Treeview - downloading state -->
+        <div class="gui-tree" style="max-height: 140px; overflow-y: auto;">
+          <div class="gui-tree-header">
+            <span></span>
+            <span>기관명</span>
+            <span>공시항목</span>
+            <span>상태</span>
+          </div>
+          <div class="gui-tree-row">
+            <span class="gui-checkbox checked">✓</span>
+            <span class="gui-org-name">한국산업단지공단</span>
+            <span>내부규정</span>
+            <span style="color:var(--green); font-size:0.7rem;">✓ 38건</span>
+          </div>
+          <div class="gui-tree-row" style="background:rgba(108,140,255,0.06);">
+            <span class="gui-checkbox checked">✓</span>
+            <span class="gui-org-name" style="color:var(--accent);">한국무역보험공사</span>
+            <span>내부규정</span>
+            <span style="color:var(--orange); font-size:0.7rem;">⟳ 수집 중</span>
+          </div>
+          <div class="gui-tree-row">
+            <span class="gui-checkbox checked">✓</span>
+            <span class="gui-org-name">한국전력공사</span>
+            <span>감사원 지적사항</span>
+            <span style="color:var(--text-muted); font-size:0.7rem;">대기</span>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="gui-progress-wrap">
+          <div class="gui-progress-bar">
+            <div class="gui-progress-fill blue" style="width: 42%;"></div>
+          </div>
+          <div class="gui-progress-text">1 / 3 기관 완료 · 42% · 예상 잔여 00:48</div>
+        </div>
+
+        <!-- Log - downloading -->
+        <div class="gui-log">
+          <div><span class="time">[14:32:10]</span> <span class="info">공시내용 수집 시작 — 3개 기관</span></div>
+          <div><span class="time">[14:32:11]</span> 한국산업단지공단 > 내부규정</div>
+          <div><span class="time">[14:32:12]</span> <span class="file">  ✓ 정관.pdf</span> <span class="ext">(127KB)</span></div>
+          <div><span class="time">[14:32:12]</span> <span class="file">  ✓ 인사규정.hwp</span> <span class="ext">(89KB)</span></div>
+          <div><span class="time">[14:32:13]</span> <span class="file">  ✓ 보수규정.hwp</span> <span class="ext">(74KB)</span></div>
+          <div><span class="time">[14:32:14]</span> <span class="file">  ✓ 임원추천규정.pdf</span> <span class="ext">(56KB)</span></div>
+          <div><span class="time">[14:32:14]</span>   ... 외 34건</div>
+          <div><span class="time">[14:32:15]</span> <span class="ok">✓ 한국산업단지공단 — 38건 완료</span></div>
+          <div><span class="time">[14:32:16]</span> 한국무역보험공사 > 내부규정</div>
+          <div><span class="time">[14:32:17]</span> <span class="file">  ✓ 정관.pdf</span> <span class="ext">(142KB)</span></div>
+          <div><span class="time">[14:32:17]</span> <span class="file">  ↓ 윤리경영규정.hwp</span> <span class="ext" style="color:var(--orange);">수신 중...</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━ Demo: Step 3 — Folder Output ━━ -->
+<section id="demo-step3">
+  <div class="section-inner reveal">
+    <div class="section-label">STEP 3</div>
+    <div class="section-title">결과물: 자동 정리된 폴더</div>
+    <p class="section-desc">수집 완료 후 항목 → 기관 구조로 폴더가 자동 생성됩니다. 엑셀 저장을 누르면 데이터도 정리됩니다.</p>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items:start;">
+      <div>
+        <h3 style="font-size:0.85rem; margin-bottom:1rem; color:var(--accent);">폴더 구조</h3>
+        <div class="folder-tree">
+<span class="folder">ALIO_20260524_1432/</span>
+├── <span class="folder">내부규정/</span>
+│   ├── <span class="folder">한국산업단지공단/</span>
+│   │   ├── <span class="file">정관.pdf</span>
+│   │   ├── <span class="file">인사규정.hwp</span>
+│   │   ├── <span class="file">보수규정.hwp</span>
+│   │   └── <span class="ext">... 35건</span>
+│   └── <span class="folder">한국무역보험공사/</span>
+│       ├── <span class="file">정관.pdf</span>
+│       └── <span class="ext">... 28건</span>
+├── <span class="folder">감사원_지적사항/</span>
+│   └── <span class="folder">한국전력공사/</span>
+│       └── <span class="file">감사원_지적사항.pdf</span>
+└── <span class="file">ALIO_수집결과.xlsx</span>
+        </div>
+      </div>
+      <div>
+        <h3 style="font-size:0.85rem; margin-bottom:1rem; color:var(--green);">엑셀 출력 예시</h3>
+        <div class="gui-tree" style="font-size:0.7rem;">
+          <div class="gui-tree-header" style="grid-template-columns: 1fr 1fr 0.6fr;">
+            <span>기관명</span>
+            <span>규정명</span>
+            <span>구분</span>
+          </div>
+          <div class="gui-tree-row" style="grid-template-columns: 1fr 1fr 0.6fr;">
+            <span>한국산업단지공단</span>
+            <span>정관</span>
+            <span style="color:var(--green);">정관</span>
+          </div>
+          <div class="gui-tree-row" style="grid-template-columns: 1fr 1fr 0.6fr;">
+            <span>한국산업단지공단</span>
+            <span>인사규정</span>
+            <span style="color:var(--accent);">규정</span>
+          </div>
+          <div class="gui-tree-row" style="grid-template-columns: 1fr 1fr 0.6fr;">
+            <span>한국산업단지공단</span>
+            <span>보수규정</span>
+            <span style="color:var(--accent);">규정</span>
+          </div>
+          <div class="gui-tree-row" style="grid-template-columns: 1fr 1fr 0.6fr;">
+            <span>한국무역보험공사</span>
+            <span>정관</span>
+            <span style="color:var(--green);">정관</span>
+          </div>
+          <div class="gui-tree-row" style="grid-template-columns: 1fr 1fr 0.6fr;">
+            <span style="color:var(--text-muted);">...</span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+        <p style="font-size:0.72rem; color:var(--text-dim); margin-top:0.8rem; line-height:1.6;">
+          항목 유형에 따라 컬럼이 달라집니다.<br>
+          내부규정 → 규정명·구분·파일<br>
+          감사 지적 → 지적유형·처분·이행상태<br>
+          임직원 수 → 정원·현원·직급별
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━ Before / After ━━ -->
+<section id="comparison">
+  <div class="section-inner reveal">
+    <div class="section-label">WHY</div>
+    <div class="section-title">수작업 vs. ALIO Crawler</div>
+
+    <div class="comparison">
+      <div class="compare-card before">
+        <h3><span style="color:var(--red);">BEFORE</span> 수작업</h3>
+        <ul>
+          <li>alio.go.kr 접속 → 기관 검색</li>
+          <li>공시항목 페이지 하나씩 열기</li>
+          <li>파일 하나씩 클릭 다운로드</li>
+          <li>기관별 폴더 수동 정리</li>
+          <li>355기관 × 92항목 = 반복 지옥</li>
+          <li>1기관 1항목 ≈ 5분 → 총 2,722시간</li>
+        </ul>
+      </div>
+      <div class="compare-arrow">→</div>
+      <div class="compare-card after">
+        <h3><span style="color:var(--green);">AFTER</span> 자동 수집</h3>
+        <ul>
+          <li>항목 선택 → 버튼 3번 클릭</li>
+          <li>병렬 다운로드 (5배속)</li>
+          <li>첨부파일 자동 분류·저장</li>
+          <li>항목/기관별 폴더 자동 생성</li>
+          <li>진행률·로그 실시간 표시</li>
+          <li>355기관 전체 수집 ≈ 수 분</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━ Download Types ━━ -->
+<section id="downloads">
+  <div class="section-inner reveal">
+    <div class="section-label">COVERAGE</div>
+    <div class="section-title">지원하는 다운로드 유형</div>
+    <p class="section-desc">ALIO의 다양한 파일 구조를 모두 자동으로 처리합니다.</p>
+
+    <div class="dl-types">
+      <div class="dl-type">
+        <div class="dl-type-icon">&#x1F4C4;</div>
+        <h4>공시 보고서</h4>
+        <p>항목별 공시 PDF 리포트<br>직접 API 다운로드</p>
+        <span class="tag pdf">PDF</span>
+      </div>
+      <div class="dl-type">
+        <div class="dl-type-icon">&#x1F4CE;</div>
+        <h4>게시판형 첨부</h4>
+        <p>12개 항목의 게시글<br>첨부파일 HTML 파싱</p>
+        <span class="tag hwp">HWP · PDF · XLSX</span>
+      </div>
+      <div class="dl-type">
+        <div class="dl-type-icon">&#x1F4D1;</div>
+        <h4>내부규정</h4>
+        <p>규정 목록 → 상세 → 파일<br>3단계 체인 자동 처리</p>
+        <span class="tag hwp">HWP · PDF</span>
+      </div>
+      <div class="dl-type">
+        <div class="dl-type-icon">&#x1F4CA;</div>
+        <h4>경영실적평가</h4>
+        <p>수시공시(Susi) API<br>페이지네이션 자동 순회</p>
+        <span class="tag pdf">PDF</span>
+      </div>
+      <div class="dl-type">
+        <div class="dl-type-icon">&#x1F4CB;</div>
+        <h4>안전관리 보고서</h4>
+        <p>dfile 엔드포인트<br>전용 다운로드 경로</p>
+        <span class="tag pdf">PDF</span>
+      </div>
+      <div class="dl-type">
+        <div class="dl-type-icon">&#x1F517;</div>
+        <h4>외부 링크</h4>
+        <p>조달청(g2b) 등<br>외부 URL 목록 저장</p>
+        <span class="tag link">URL · TXT</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━ Features ━━ -->
+<section id="features">
+  <div class="section-inner reveal">
+    <div class="section-label">FEATURES</div>
+    <div class="section-title">주요 기능</div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon blue">&#x1F50D;</div>
+        <h3>92개 전 항목 지원</h3>
+        <p>ALIO 공시 92개 항목을 모두 수집할 수 있습니다. 항목 메타데이터는 자동 캐시됩니다.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green">&#x26A1;</div>
+        <h3>병렬 다운로드</h3>
+        <p>ThreadPoolExecutor 기반 병렬 처리로 기관당 5배 빠른 수집 속도를 제공합니다.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon purple">&#x1F3AF;</div>
+        <h3>다중 필터</h3>
+        <p>기관유형 · 주무부처 · 지역 · 키워드 검색을 조합해 원하는 기관만 골라냅니다.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon orange">&#x2611;</div>
+        <h3>다중 선택</h3>
+        <p>항목도, 기관도 복수 선택. 체크박스로 원하는 조합만 골라서 수집합니다.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon cyan">&#x1F4C1;</div>
+        <h3>자동 폴더 정리</h3>
+        <p>항목명 / 기관명 2단계 폴더 구조로 파일을 자동 분류·저장합니다.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon yellow">&#x1F4CA;</div>
+        <h3>엑셀 내보내기</h3>
+        <p>수집 데이터를 항목별 맞춤 컬럼의 Excel 파일로 정리합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━ Quick Start ━━ -->
+<section id="quickstart">
+  <div class="section-inner reveal">
+    <div class="section-label">INSTALL</div>
+    <div class="section-title">설치 및 실행</div>
+
+    <div class="qs-steps">
+      <div class="qs-step">
+        <div>
+          <h4>Python 3.10+ 설치</h4>
+          <p>이미 설치되어 있다면 건너뛰세요.</p>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div>
+          <h4>필수 패키지 설치</h4>
+          <p><code>pip install requests openpyxl beautifulsoup4</code></p>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div>
+          <h4>프로그램 다운로드</h4>
+          <p><code>alio_crawler_v5.4.py</code> 와 <code>alio_core.py</code> 두 파일을 같은 폴더에 저장합니다.</p>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div>
+          <h4>실행</h4>
+          <p><code>python alio_crawler_v5.4.py</code> — GUI 창이 열리면 바로 사용 가능합니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-box" style="margin-top:3rem;">
+      <h2>시작하기</h2>
+      <p>공공기관 경영정보, 더 이상 하나씩 받지 마세요.</p>
+      <div class="cta-buttons">
+        <a class="cta-btn primary" href="https://github.com/giovinazo/alio-crawler" target="_blank">GitHub에서 다운로드</a>
+        <a class="cta-btn secondary" href="https://github.com/giovinazo/alio-mcp" target="_blank">ALIO MCP도 보기 →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  ALIO Crawler &copy; 2026 &middot; 공공기관 경영정보 공개시스템(ALIO) 데이터를 수집합니다.
+</footer>
+
+<!-- Scroll Reveal -->
+<script>
+const reveals = document.querySelectorAll('.reveal');
+
+function checkReveal() {
+  const trigger = window.innerHeight * 0.85;
+  reveals.forEach(el => {
+    const top = el.getBoundingClientRect().top;
+    if (top < trigger) el.classList.add('visible');
+  });
+}
+
+window.addEventListener('scroll', checkReveal);
+window.addEventListener('load', checkReveal);
+</script>
+
+</body>
+</html>
