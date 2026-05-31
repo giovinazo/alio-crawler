@@ -1,0 +1,45 @@
+name: Build Windows EXE
+
+# v* 태그 push 시 Windows exe를 빌드해 동일 태그 릴리스에 첨부한다.
+# (PyInstaller는 크로스컴파일 불가 → windows-latest 러너에서 빌드)
+# 수동 실행(workflow_dispatch) 시엔 릴리스 없이 아티팩트로만 업로드(테스트용).
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # 릴리스 생성·자산 업로드용 GITHUB_TOKEN 권한
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Build exe
+        run: pyinstaller --noconfirm alio_crawler.spec
+
+      - name: Upload artifact (테스트용)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ALIO_Crawler_Windows
+          path: dist/*.exe
+
+      - name: Attach to Release (태그 push 시)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.exe
+          generate_release_notes: true

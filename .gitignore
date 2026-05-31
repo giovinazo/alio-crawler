@@ -6,6 +6,11 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# PyInstaller 빌드 산출물 (exe는 GitHub Release로만 배포)
+build/
+dist/
+*.manifest
 *.egg-info/
 .pytest_cache/
 
