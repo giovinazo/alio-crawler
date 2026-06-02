@@ -31,7 +31,11 @@ from threading import Lock
 from typing import Optional
 
 import requests
+import urllib3
 from requests.adapters import HTTPAdapter
+
+# ALIO는 일부 외부망의 SSL 검사(가로채기) 보안장비 뒤에 있어 검증 시 인증서 오류 발생 → 검증 끄고 경고 숨김
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 BASE_URL = "https://www.alio.go.kr"
 
@@ -91,6 +95,7 @@ def sanitize_filename(name: str, max_len: int = 80) -> str:
 
 def create_session() -> requests.Session:
     sess = requests.Session()
+    sess.verify = False  # SSL 검사(가로채기) 보안장비 환경 대응
     sess.headers.update(HEADERS_GET)
     adapter = HTTPAdapter(pool_connections=20, pool_maxsize=20)
     sess.mount("https://", adapter)

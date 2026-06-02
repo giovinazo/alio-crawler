@@ -97,7 +97,7 @@ def main():
     print("=" * 90)
 
     m = load_module()
-    sess = m.create_session(verify_ssl=True)
+    sess = m.create_session(verify_ssl=False)
     sess.headers.update(m.HEADERS)
     items = m.get_alio_items()
     if not items:

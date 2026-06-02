@@ -101,7 +101,7 @@ def main():
 
         # ─── 2. API 연결 ────────────────────────
         print("\n[2] API 연결")
-        sess = m.create_session(verify_ssl=True)
+        sess = m.create_session(verify_ssl=False)
         sess.headers.update(m.HEADERS)
 
         # formList.json

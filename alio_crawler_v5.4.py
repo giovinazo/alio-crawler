@@ -472,7 +472,7 @@ class ALIOCrawlerGUI:
             pass
 
         self._stop_event = threading.Event()
-        self.session = create_session(verify_ssl=True)
+        self.session = create_session(verify_ssl=False)
         self.session.headers.update(HEADERS)
         self.all_results = []
         self.filtered_results = []

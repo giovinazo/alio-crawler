@@ -167,7 +167,7 @@ def probe_special_item(m, sess, item_meta, root_no, item_type, tmpdir):
 
 def main():
     m = load_module()
-    sess = m.create_session(verify_ssl=True)
+    sess = m.create_session(verify_ssl=False)
     sess.headers.update(m.HEADERS)
     items = m.get_alio_items()
     if not items:
