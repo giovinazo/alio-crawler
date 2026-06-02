@@ -39,8 +39,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 BASE_URL = "https://www.alio.go.kr"
 
+# 출력 기본 경로: 이식성을 위해 홈 디렉터리 기준. ALIO_RULES_OUT 환경변수로 변경 가능.
 DEFAULT_OUT_BASE = Path(
-    "~/alio_training_rules/04_법률_규정"
+    os.environ.get("ALIO_RULES_OUT", str(Path.home() / "alio_training_rules"))
 )
 
 HEADERS_GET = {
@@ -491,7 +492,7 @@ def parse_args() -> argparse.Namespace:
     )
     p.add_argument(
         "--out", type=Path, default=None,
-        help="출력 폴더. 미지정 시 NAS/04_법률_규정/공공기관_교육훈련규정_비교_YYYYMMDD/",
+        help="출력 폴더. 미지정 시 ~/alio_training_rules/공공기관_교육훈련규정_비교_YYYYMMDD/ (ALIO_RULES_OUT로 변경 가능)",
     )
     p.add_argument("--keyword", default="교육훈련", help="제목 매칭 키워드")
     p.add_argument(
