@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ──────────────────────────────────────────────────
 # 프로그램명: ALIO Crawler (알리오 크롤러)
-# 버전: 5.4.1
+# 버전: 5.4.2
 # 저작자: 허재영
 # 창작연도: 2025
 # 최종 수정일: 2026-04-26
@@ -11,7 +11,7 @@
 ALIO 공공기관 경영정보 공개시스템 - 항목별 공시 크롤링 시스템 v5
 - 기관유형, 주무부처, 지역별 필터링 기능
 - 내부규정 크롤링 기능 추가
-- 버전: 5.4.1 (2026년 4월 기준)
+- 버전: 5.4.2 (2026년 6월 기준)
 
 변경사항 (v5.4 → v5.4.1):
 - 게시판형(reportYn=N) 항목 첨부파일 다운로드 기능 추가
@@ -461,7 +461,7 @@ class ItemSelectorDialog:
 class ALIOCrawlerGUI:
     def __init__(self, root):
         self.root = root
-        self.root.title("ALIO 항목별 공시 크롤링 시스템 v5.4.1")
+        self.root.title("ALIO 항목별 공시 크롤링 시스템 v5.4.2")
         self.root.geometry("950x900")
         self.root.resizable(True, True)
         self.root.minsize(900, 700)
@@ -519,7 +519,7 @@ class ALIOCrawlerGUI:
         title_frame = ttk.Frame(main_frame)
         title_frame.pack(fill=tk.X, pady=(0, 5))
 
-        ttk.Label(title_frame, text="ALIO 항목별 공시 크롤링 시스템 v5.4.1",
+        ttk.Label(title_frame, text="ALIO 항목별 공시 크롤링 시스템 v5.4.2",
                  font=("맑은 고딕", 11, "bold")).pack(side=tk.LEFT)
         ttk.Button(title_frame, text="도움말",
                   command=self.show_help, width=8).pack(side=tk.RIGHT)
@@ -744,7 +744,7 @@ class ALIOCrawlerGUI:
     
     def show_help(self):
         help_text = (
-            "【 ALIO 항목별 공시 크롤러 v5.4.1 사용법 】\n\n"
+            "【 ALIO 항목별 공시 크롤러 v5.4.2 사용법 】\n\n"
             "1. 기관목록수집: 선택한 조건에 맞는 기관 목록을 가져옵니다.\n"
             "   - 기관유형: 공기업(시장형/준시장형), 준정부기관(기금관리형/위탁집행형), 기타공공기관\n"
             "   - 주무부처: 44개 부처/청 중 선택\n"
@@ -1324,7 +1324,7 @@ class ALIOCrawlerGUI:
             root_no = item_info["rootNo"]
 
             self.log("=" * 60)
-            self.log("ALIO 기관 목록 수집 시작 (v5.4.1)")
+            self.log("ALIO 기관 목록 수집 시작 (v5.4.2)")
             self.log("=" * 60)
             self.log(f"공시항목: {item_name} (rootNo: {root_no})")
             self.log(f"기관유형 필터: {inst_type_filter}")

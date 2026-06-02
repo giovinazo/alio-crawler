@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ALIO 크롤러 v5.4.1 자체점검 스크립트
+ALIO 크롤러 v5.4.2 자체점검 스크립트
 - GUI 없이 핵심 기능을 자동 검증
 - 한국산업단지공단(C0208) 데이터로 실제 API 호출·다운로드 검증
 - 결과: PASS / FAIL / SKIP 표 출력
@@ -60,7 +60,7 @@ def load_module():
 # ── 점검 실행 ──────────────────────────────────────
 def main():
     print("=" * 70)
-    print(f"ALIO 크롤러 v5.4.1 자체점검 ({datetime.now():%Y-%m-%d %H:%M:%S})")
+    print(f"ALIO 크롤러 v5.4.2 자체점검 ({datetime.now():%Y-%m-%d %H:%M:%S})")
     print(f"대상: {TARGET_FILE}")
     print(f"테스트 기관: {TEST_APBA_NM} (apbaId={TEST_APBA_ID})")
     print("=" * 70)
@@ -342,10 +342,10 @@ def main():
         with open(TARGET_FILE, "r", encoding="utf-8") as f:
             content = f.read()
         version_checks = [
-            ("# 버전: 5.4.1", "헤더 버전 표기"),
-            ("ALIO 항목별 공시 크롤링 시스템 v5.4.1", "GUI 타이틀"),
-            ("v5.4.1 사용법", "도움말 헤더"),
-            ("(v5.4.1)", "로그 메시지"),
+            ("# 버전: 5.4.2", "헤더 버전 표기"),
+            ("ALIO 항목별 공시 크롤링 시스템 v5.4.2", "GUI 타이틀"),
+            ("v5.4.2 사용법", "도움말 헤더"),
+            ("(v5.4.2)", "로그 메시지"),
         ]
         for needle, label in version_checks:
             if needle in content:

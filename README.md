@@ -91,7 +91,7 @@ python3 precise_audit.py        # 약 5분
 
 | 버전 | 주요 변경 |
 |---|---|
-| v5.4.2 | 알리오 항목 92개로 확장 (ESG 운영·AI 활용 카테고리 신설) + precise_audit.py 정확화 (rule/audit/mgmt_eval 실제 흐름 반영) |
+| v5.4.2 | 알리오 항목 92개로 확장 (ESG 운영·AI 활용 카테고리 신설) + precise_audit.py 정확화 (rule/audit/mgmt_eval 실제 흐름 반영) + SSL 검사(가로채기) 장비 환경 호환 (인증서 검증 회귀 수정) |
 | v5.4.1 | 게시판형 첨부 2개 패턴 통합 + 콤마 fallback + 외부 링크 + envlaw 병렬화 |
 | v5.4 | 83개 항목 자동 수집 + UI 다중 선택 + 폴더 구조 재편 |
 | v5.3 | 경영실적 평가결과 추가 (Susi API) |
